@@ -296,6 +296,9 @@ class SceneWindow(QOpenGLWidget):
 
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = True
 
+        if event.key() == QtCore.Qt.Key_Q:
+            self.get_prediction()
+
         if event.key() == QtCore.Qt.Key_L:
             self.live = not self.live
 
