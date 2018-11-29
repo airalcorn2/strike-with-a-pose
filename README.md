@@ -77,7 +77,7 @@ Users can test their own objects and backgrounds in `strike-with-a-pose` by ***(
 PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 ```
 
-Pressing **L** will toggle **Live** mode. When on, the neural network will continuously generate predictions. Note, **Live** mode can cause considerable lag if you do not have a powerful GPU.
+Pressing **L** will toggle **Live** mode. When on, the neural network will continuously generate predictions. Note, **Live** mode can cause considerable lag if you do not have each of ***(1)*** a powerful GPU, ***(2)*** [CUDA](https://developer.nvidia.com/cuda-90-download-archive) installed, and ***(3)*** a [PyTorch version with CUDA](https://pytorch.org/get-started/locally/) support installed.
 
 Pressing **X** will toggle the object's **teXture**. This is useful for making sure the directional light is properly interacting with your object. If the light looks funny, swapping/negating the vertex normal coordinates can usually fix it. See the script below for an example.
 
