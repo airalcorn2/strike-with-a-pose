@@ -154,7 +154,7 @@ class Scene:
         self.PROG["is_background"].value = False
         self.PROG["use_texture"].value = True
         self.USE_BACKGROUND = False
-        self.PROG["use_texture"].value = False
+        self.PROG["use_texture"].value = True
         self.PROG["Pan"].value = (0, 0)
         self.PROG["Zoom"].value = 0
         self.PROG["DirLight"].value = (0, 1, 0)
