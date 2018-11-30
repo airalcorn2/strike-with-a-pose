@@ -152,6 +152,7 @@ class Scene:
         self.CTX.enable(moderngl.DEPTH_TEST)
         self.CTX.enable(moderngl.BLEND)
         self.PROG["is_background"].value = False
+        self.PROG["use_texture"].value = True
         self.USE_BACKGROUND = False
         self.PROG["use_texture"].value = False
         self.PROG["Pan"].value = (0, 0)
@@ -220,19 +221,21 @@ class Scene:
         self.TRUE_LABEL = self.LABEL_MAP[self.TRUE_CLASS]
 
         # Load textures.
-        if TEXTURE_F is not None:
+        TEXTURES = []
+        for TEXTURE_F in TEXTURE_FS:
             texture_f = SCENE_DIR + "{1}".format(SCENE_DIR, TEXTURE_F)
             texture_img = Image.open(texture_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
-            self.TEXTURE = self.CTX.texture(texture_img.size, 4, texture_img.tobytes())
-            self.TEXTURE.build_mipmaps()
-            self.TEXTURE.use()
-            self.PROG["use_texture"].value = True
+            TEXTURE = self.CTX.texture(texture_img.size, 4, texture_img.tobytes())
+            TEXTURE.build_mipmaps()
+            TEXTURES.append(TEXTURE)
+
+        self.TEXTURES = TEXTURES
 
         # Load vertices.
-        VAOS = {}
+        VAOS = []
         (min_val, abs_max_val, max_val) = (None, None, None)
-        for OBJ in OBJS:
-            input_obj = SCENE_DIR + OBJ
+        for OBJ_F in OBJ_FS:
+            input_obj = SCENE_DIR + OBJ_F
             obj = Obj.open(input_obj)
             packed_array = obj.to_array()[:, :-1]
 
@@ -259,7 +262,7 @@ class Scene:
             vbo = self.CTX.buffer(packed_array.flatten().astype("f4").tobytes())
             vao = self.CTX.simple_vertex_array(self.PROG, vbo, "in_vert",
                                                "in_norm", "in_text")
-            VAOS[OBJ] = vao
+            VAOS.append(vao)
 
         self.VAOS = VAOS
 
@@ -279,11 +282,11 @@ class Scene:
         else:
             self.CTX.clear(R, G, B)
 
-        if self.PROG["use_texture"].value and TEXTURE_F is not None:
-            self.TEXTURE.use()
+        for (i, VAO) in enumerate(self.VAOS):
+            if self.PROG["use_texture"].value:
+                self.TEXTURES[i].use()
 
-        for OBJ in OBJS:
-            self.VAOS[OBJ].render()
+            VAO.render()
 
     def pan(self, deltas):
         self.PROG["Pan"].value = deltas
