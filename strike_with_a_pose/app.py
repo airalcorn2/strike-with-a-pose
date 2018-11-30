@@ -14,6 +14,17 @@ from PyQt5.QtWidgets import QWidget
 from strike_with_a_pose.scene import Scene
 
 INSTRUCTIONS_F = pkg_resources.resource_filename("strike_with_a_pose",  "instructions.html")
+INITIAL_PARAMS = {
+    "x_delta": -0.3865,
+    "y_delta": 0.6952,
+    "z_delta": -9.6000,
+    "yaw": -138.0867,
+    "pitch": -3.8813,
+    "roll": -2.8028,
+    "amb_int": 0.7000,
+    "dir_int": 0.7000,
+    "DirLight": (0.0000, 1.0000, 0.000)
+}
 
 fmt = QSurfaceFormat()
 fmt.setVersion(3, 3)
@@ -437,21 +448,10 @@ class SceneWindow(QOpenGLWidget):
                                         self.scene.TOO_FAR)
             self.pan_tool = PanTool(self.scene.TAN_ANGLE)
 
-            self.pan_tool.total_x = -0.1639
-            self.pan_tool.total_y = 0.4531
-            self.wheel_tool.total_z = -7.2000
-            initial_params = {
-                "x_delta": -0.1639,
-                "y_delta": 0.4531,
-                "z_delta": -7.2000,
-                "yaw": -78.6721,
-                "pitch": 12.3523,
-                "roll": -1.4643,
-                "amb_int": 0.7000,
-                "dir_int": 0.7000,
-                "DirLight": (0.0000, 1.0000, 0.000)
-            }
-            self.scene.set_params(initial_params)
+            self.pan_tool.total_x = INITIAL_PARAMS["x_delta"]
+            self.pan_tool.total_y = INITIAL_PARAMS["y_delta"]
+            self.wheel_tool.total_z = INITIAL_PARAMS["z_delta"]
+            self.scene.set_params(INITIAL_PARAMS)
             self.fill_entry_form()
             self.scene.render()
             self.get_prediction()
