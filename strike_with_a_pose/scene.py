@@ -96,7 +96,7 @@ class Scene:
                 uniform mat3 L;
                 uniform vec3 DirLight;
                 uniform mat4 Mvp;
-                uniform bool is_background;
+                uniform int mode;
 
                 in vec3 in_vert;
                 in vec3 in_norm;
@@ -107,7 +107,7 @@ class Scene:
                 out vec3 v_light;
 
                 void main() {
-                    if (!is_background) {
+                    if (mode == 0) {
                         gl_Position = Mvp * vec4((R * in_vert) + vec3(Pan, Zoom), 1.0);
                         v_norm = R * in_norm;
                         v_text = in_text;
@@ -125,7 +125,7 @@ class Scene:
                 uniform float dir_int;
                 uniform float amb_int;
                 uniform sampler2D Texture;
-                uniform bool is_background;
+                uniform int mode;
                 uniform bool use_texture;
 
                 in vec3 v_norm;
@@ -135,15 +135,17 @@ class Scene:
                 out vec4 f_color;
 
                 void main() {
-                    if (!is_background) {
+                    if (mode == 0) {
                         float lum = clamp(dot(v_light, v_norm), 0.0, 1.0) * dir_int + amb_int;
                         if (use_texture) {
                             f_color = vec4(texture(Texture, v_text).rgb * lum, texture(Texture, v_text).a);
                         } else {
                             f_color = vec4(vec3(1.0, 1.0, 1.0) * lum, 1.0);
                         }
-                    } else {
+                    } else if (mode == 1) {
                         f_color = vec4(texture(Texture, v_text).rgba);
+                    } else {
+                        f_color = vec4(1.0, 0.0, 0.0, 1.0);
                     }
                 }
             """
@@ -151,9 +153,7 @@ class Scene:
 
         self.CTX.enable(moderngl.DEPTH_TEST)
         self.CTX.enable(moderngl.BLEND)
-        self.PROG["is_background"].value = False
-        self.PROG["use_texture"].value = True
-        self.USE_BACKGROUND = False
+        self.PROG["mode"].value = 0
         self.PROG["use_texture"].value = True
         self.PROG["Pan"].value = (0, 0)
         self.PROG["Zoom"].value = 0
@@ -165,12 +165,14 @@ class Scene:
         self.PROG["R"].write(self.R.astype("f4").tobytes())
         self.L = np.eye(3)
         self.PROG["L"].write(self.L.astype("f4").tobytes())
+
         self.CAMERA_DISTANCE = CAMERA_DISTANCE
         self.TOO_CLOSE = self.CAMERA_DISTANCE - 2.0
         self.TOO_FAR = self.CAMERA_DISTANCE - 30.0
         self.TAN_ANGLE = np.tan(VIEWING_ANGLE * np.pi / 180.0)
 
         # Load background.
+        self.USE_BACKGROUND = False
         if BACKGROUND_F is not None:
             background_f = "{0}{1}".format(SCENE_DIR, BACKGROUND_F)
             background_img = Image.open(background_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
@@ -272,12 +274,12 @@ class Scene:
         if self.USE_BACKGROUND and BACKGROUND_F is not None:
 
             self.CTX.disable(moderngl.DEPTH_TEST)
-            self.PROG["is_background"].value = True
+            self.PROG["mode"].value = 1
             self.BACKGROUND.use()
             self.BACKGROUND_VAO.render()
 
             self.CTX.enable(moderngl.DEPTH_TEST)
-            self.PROG["is_background"].value = False
+            self.PROG["mode"].value = 0
 
         else:
             self.CTX.clear(R, G, B)
@@ -287,6 +289,38 @@ class Scene:
                 self.TEXTURES[i].use()
 
             VAO.render()
+
+        draw_boxes = False
+        if draw_boxes:
+            # Every two rows define a line.
+            box_1 = np.array([[-0.5, -0.5],
+                              [-0.5, 0.5],
+                              [-0.5, -0.5],
+                              [0.5, -0.5],
+                              [-0.5, 0.5],
+                              [0.5, 0.5],
+                              [0.5, -0.5],
+                              [0.5, 0.5]])
+            box_2 = np.array([[-0.25, -0.25],
+                              [-0.25, 0.25],
+                              [-0.25, -0.25],
+                              [0.25, -0.25],
+                              [-0.25, 0.25],
+                              [0.25, 0.25],
+                              [0.25, -0.25],
+                              [0.25, 0.25]])
+            self.boxes = [box_1, box_2]
+            for box in self.boxes:
+                full_array = np.zeros((8, 8))
+                full_array[:, :2] = box
+                box_vbo = self.CTX.buffer(full_array.astype("f4").tobytes())
+                box_vao = self.CTX.simple_vertex_array(self.PROG, box_vbo, "in_vert",
+                                                       "in_norm", "in_text")
+                self.CTX.disable(moderngl.DEPTH_TEST)
+                self.PROG["mode"].value = 2
+                box_vao.render(moderngl.LINES)
+                self.CTX.enable(moderngl.DEPTH_TEST)
+                self.PROG["mode"].value = 0
 
     def pan(self, deltas):
         self.PROG["Pan"].value = deltas
