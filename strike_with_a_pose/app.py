@@ -5,6 +5,7 @@ import numpy as np
 import pkg_resources
 import time
 
+from OpenGL import GL
 from PIL import Image
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QSurfaceFormat
