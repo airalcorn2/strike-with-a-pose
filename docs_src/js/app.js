@@ -1,7 +1,7 @@
-const model = mobilenet.load();
+$(document).ready(main);
 
 function main(jQuery) {
-  console.log('hello');
+  load_model();
 
   var app = new OBJLoader2Example(document.getElementById('example'));
 
@@ -12,37 +12,29 @@ function main(jQuery) {
 
   $(window).resize(function() {app.resizeDisplayGL();});
 
-  console.log( 'Starting initialisation phase...' );
+  console.log('Starting initialisation phase...');
   app.initGL();
   app.resizeDisplayGL();
   app.initContent();
-
   render();
+}
 
+async function load_model() {
+  var model = await mobilenet.load();
   $(document).keyup(function(evt) {
     if (evt.which != 13) return;
-    console.log('hello, world');
     var canvas = document.getElementById('example');
     var img = tf.fromPixels(canvas);
-    // console.log(img);
-    mobilenet.load().then(model => {
-      // Classify the image.
-      model.classify(img).then(predictions => {
-        console.log('Predictions: ');
-        console.log(predictions);
-        console.log(predictions);
-        $ybar = $('#ybar').empty();
-        var i, text = '';
-        for (i = 0; i < predictions.length; ++i) {
-          text = predictions[i]['probability'] + ' ' + predictions[i]['className'];
-          $ybar.append($('<p></p>').text(text));
-        }
-      });
+    model.classify(img).then(ybar => {
+      $ybar = $('#ybar').empty();
+      var i, text = '';
+      for (i = 0; i < ybar.length; ++i) {
+        text = ybar[i]['probability'] + ' ' + ybar[i]['className'];
+        $ybar.append($('<p></p>').text(text));
+      }
     });
   });
 }
-
-$(document).ready(main);
 
 var OBJLoader2Example = function ( elementToBindTo ) {
   this.renderer = null;
