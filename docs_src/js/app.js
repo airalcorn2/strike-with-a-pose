@@ -36,7 +36,7 @@ async function load_model() {
   });
 }
 
-var OBJLoader2Example = function ( elementToBindTo ) {
+var OBJLoader2Example = function(elementToBindTo) {
   this.renderer = null;
   this.canvas = elementToBindTo;
   this.aspectRatio = 1;
@@ -44,11 +44,11 @@ var OBJLoader2Example = function ( elementToBindTo ) {
 
   this.scene = null;
   this.cameraDefaults = {
-    posCamera: new THREE.Vector3( 0.0, 400.0, 1000.0 ),
-    posCameraTarget: new THREE.Vector3( 0, 0, 0 ),
+    posCamera: new THREE.Vector3(0.0, 400.0, 1000.0),
+    posCameraTarget: new THREE.Vector3(0, 0, 0),
     near: 0.1,
     far: 10000,
-    fov: 45
+    fov: 45,
   };
   this.camera = null;
   this.cameraTarget = this.cameraDefaults.posCameraTarget;
@@ -60,98 +60,96 @@ OBJLoader2Example.prototype = {
 
   constructor: OBJLoader2Example,
 
-  initGL: function () {
-    this.renderer = new THREE.WebGLRenderer( {
+  initGL: function() {
+    this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
       autoClear: true,
       preserveDrawingBuffer: true,
-    } );
-    // this.renderer.setClearColor( 0x050505 );
-    // this.renderer.setClearColor( 0xfffff0, 0);
+    });
+    this.renderer.setClearColor(0xFFFFFF, 0);
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color( 0xffffff );
+    this.scene.background = new THREE.Color(0xFFFFFF);
 
-    this.camera = new THREE.PerspectiveCamera( this.cameraDefaults.fov, this.aspectRatio, this.cameraDefaults.near, this.cameraDefaults.far );
+    this.camera = new THREE.PerspectiveCamera(this.cameraDefaults.fov,
+                                              this.aspectRatio,
+                                              this.cameraDefaults.near,
+                                              this.cameraDefaults.far);
     this.resetCamera();
-    this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
+    this.controls = new THREE.TrackballControls(this.camera,
+                                                this.renderer.domElement);
 
-    // var ambientLight = new THREE.AmbientLight( 0xA0A0A0 );
-    // var directionalLight1 = new THREE.DirectionalLight( 0xC0C090 );
-    // var directionalLight2 = new THREE.DirectionalLight( 0xC0C090 );
-    var ambientLight = new THREE.AmbientLight( 0xFFFFFF );
-    var directionalLight1 = new THREE.DirectionalLight( 0xFFFFFF );
-    var directionalLight2 = new THREE.DirectionalLight( 0xFFFFFF );
+    var ambientLight = new THREE.AmbientLight(0xFFFFFF);
+    var directionalLight1 = new THREE.DirectionalLight(0xFFFFFF);
+    var directionalLight2 = new THREE.DirectionalLight(0xFFFFFF);
 
-    directionalLight1.position.set( -100, 100, 500 );
-    directionalLight2.position.set( 100, 50, -500 );
+    directionalLight1.position.set(-100, 100, 500);
+    directionalLight2.position.set(100, 50, -500);
 
-    this.scene.add( directionalLight1 );
-    this.scene.add( directionalLight2 );
-    this.scene.add( ambientLight );
-
-    /* var helper = new THREE.GridHelper( 1200, 60, 0xFF4444, 0x404040 );
-     * this.scene.add( helper ); */
+    this.scene.add(directionalLight1);
+    this.scene.add(directionalLight2);
+    this.scene.add(ambientLight);
   },
 
-  initContent: function () {
+  initContent: function() {
     var modelName = 'schoolbus01';
-    this._reportProgress( { detail: { text: 'Loading: ' + modelName } } );
+    this._reportProgress({detail: {text: 'Loading: ' + modelName}});
 
     var scope = this;
     var objLoader = new THREE.OBJLoader2();
-    var callbackOnLoad = function ( event ) {
-      scope.scene.add( event.detail.loaderRootNode );
-      console.log( 'Loading complete: ' + event.detail.modelName );
-      scope._reportProgress( { detail: { text: '' } } );
+    var callbackOnLoad = function (event) {
+      scope.scene.add(event.detail.loaderRootNode);
+      console.log('Loading complete: ' + event.detail.modelName);
+      scope._reportProgress({detail: {text: ''}});
     };
 
-    var onLoadMtl = function ( materials ) {
-      objLoader.setModelName( modelName );
-      objLoader.setMaterials( materials );
-      objLoader.setLogging( true, true );
-      objLoader.load( 'models/schoolbus01_49.obj', callbackOnLoad, null, null, null, false );
+    var onLoadMtl = function (materials) {
+      objLoader.setModelName(modelName);
+      objLoader.setMaterials(materials);
+      objLoader.setLogging(true, true);
+      objLoader.load('models/schoolbus01_49.obj', callbackOnLoad, null, null,
+                     null, false);
     };
-    objLoader.loadMtl( 'models/schoolbus01_49.mtl', null, onLoadMtl );
+    objLoader.loadMtl('models/schoolbus01_49.mtl', null, onLoadMtl);
   },
 
-  _reportProgress: function( event ) {
-    var output = THREE.LoaderSupport.Validator.verifyInput( event.detail.text, '' );
-    console.log( 'Progress: ' + output );
-    document.getElementById( 'feedback' ).innerHTML = output;
+  _reportProgress: function(event) {
+    var output = THREE.LoaderSupport.Validator.verifyInput(
+      event.detail.text, '');
+    console.log('Progress: ' + output);
+    document.getElementById('feedback').innerHTML = output;
   },
 
-  resizeDisplayGL: function () {
+  resizeDisplayGL: function() {
     this.controls.handleResize();
-
     this.recalcAspectRatio();
-    this.renderer.setSize( this.canvas.offsetWidth, this.canvas.offsetHeight, false );
-
+    this.renderer.setSize(
+      this.canvas.offsetWidth, this.canvas.offsetHeight, false);
     this.updateCamera();
   },
 
-  recalcAspectRatio: function () {
-    this.aspectRatio = ( this.canvas.offsetHeight === 0 ) ? 1 : this.canvas.offsetWidth / this.canvas.offsetHeight;
+  recalcAspectRatio: function() {
+    this.aspectRatio = (this.canvas.offsetHeight === 0)
+      ? 1
+      : this.canvas.offsetWidth / this.canvas.offsetHeight;
   },
 
-  resetCamera: function () {
-    this.camera.position.copy( this.cameraDefaults.posCamera );
-    this.cameraTarget.copy( this.cameraDefaults.posCameraTarget );
-
+  resetCamera: function() {
+    this.camera.position.copy(this.cameraDefaults.posCamera);
+    this.cameraTarget.copy(this.cameraDefaults.posCameraTarget);
     this.updateCamera();
   },
 
-  updateCamera: function () {
+  updateCamera: function() {
     this.camera.aspect = this.aspectRatio;
-    this.camera.lookAt( this.cameraTarget );
+    this.camera.lookAt(this.cameraTarget);
     this.camera.updateProjectionMatrix();
   },
 
-  render: function () {
-    if ( ! this.renderer.autoClear ) this.renderer.clear();
+  render: function() {
+    if (!this.renderer.autoClear) this.renderer.clear();
     this.controls.update();
-    this.renderer.render( this.scene, this.camera );
+    this.renderer.render(this.scene, this.camera);
   }
-
 };
