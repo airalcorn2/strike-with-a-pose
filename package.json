@@ -1,0 +1,39 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "babel-preset-env": "^1.7.0",
+    "babelify": "^10.0.0",
+    "browser-sync": "^2.26.3",
+    "cssnano": "^4.1.7",
+    "del": "^3.0.0",
+    "gulp": "^4.0.0",
+    "gulp-bro": "^1.0.3",
+    "gulp-changed": "^3.2.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-plumber": "^1.2.1",
+    "gulp-postcss": "^8.0.0",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-terser": "^1.1.5",
+    "gulp-uglify": "^3.0.1",
+    "precss": "^4.0.0",
+    "uglifyify": "^5.0.1",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
+  },
+  "dependencies": {
+    "jquery": "^3.3.1",
+    "three": "^0.99.0"
+  }
+}
