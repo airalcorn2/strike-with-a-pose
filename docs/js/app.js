@@ -1,14 +1,7 @@
 $(document).ready(main);
 
 function main(jQuery) {
-  load_model();
-
   var app = new OBJLoader2Example(document.getElementById('example'));
-
-  var render = function() {
-    requestAnimationFrame(render);
-    app.render();
-  };
 
   $(window).resize(function() {app.resizeDisplayGL();});
 
@@ -16,24 +9,59 @@ function main(jQuery) {
   app.initGL();
   app.resizeDisplayGL();
   app.initContent();
-  render();
+
+  render_and_predict(app);
 }
 
-async function load_model() {
+async function render_and_predict(app) {
   var model = await mobilenet.load();
-  $(document).keyup(function(evt) {
-    if (evt.which != 13) return;
+
+  var guess = function() {
     var canvas = document.getElementById('example');
     var img = tf.fromPixels(canvas);
-    model.classify(img).then(ybar => {
-      $ybar = $('#ybar').empty();
-      var i, text = '';
-      for (i = 0; i < ybar.length; ++i) {
-        text = ybar[i]['probability'] + ' ' + ybar[i]['className'];
-        $ybar.append($('<p></p>').text(text));
-      }
-    });
-  });
+    return model.classify(img);
+  };
+
+  function MakeQuerablePromise(promise) {
+    // Don't create a wrapper for promises that can already be queried.
+    if (promise.isResolved) return promise;
+
+    var isResolved = false;
+    var isRejected = false;
+
+    // Observe the promise, saving the fulfillment in a closure scope.
+    var result = promise.then(
+      function(v) {isResolved = true; return v;},
+      function(e) {isRejected = true; throw e;});
+    result.isFulfilled = function() {return isResolved || isRejected;};
+    result.isResolved = function() {return isResolved;};
+    result.isRejected = function() {return isRejected;};
+    return result;
+  }
+
+  var t0 = performance.now();
+  var job = null;
+  var render = function(t1) {
+    requestAnimationFrame(render);
+    var d = app.render();
+    if (t1 - t0 > 100 && d > 1e-3 && (!job || job.isResolved)) {
+      t0 = t1;
+      var canvas = document.getElementById('example');
+      var img = tf.fromPixels(canvas);
+      job = model.classify(img);
+      job.then(ybar => {
+        var $ybar = $('#ybar').empty();
+        var i, text = '';
+        for (i = 0; i < ybar.length; ++i) {
+          text = ybar[i]['probability'] + ' ' + ybar[i]['className'];
+          $ybar.append($('<p></p>').text(text));
+        }
+      });
+      job = MakeQuerablePromise(job);
+    };
+  };
+
+  render();
 }
 
 var OBJLoader2Example = function(elementToBindTo) {
@@ -149,7 +177,8 @@ OBJLoader2Example.prototype = {
 
   render: function() {
     if (!this.renderer.autoClear) this.renderer.clear();
-    this.controls.update();
+    var d = this.controls.update();
     this.renderer.render(this.scene, this.camera);
+    return d;
   }
 };
