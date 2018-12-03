@@ -88,5 +88,5 @@ function scripts() {
 }
 
 function publish() {
-  return $.src('./build/**/*').pipe($.dest('./'));
+  return $.src('./build/**/*').pipe($.dest('./docs'));
 }
