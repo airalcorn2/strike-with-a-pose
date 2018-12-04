@@ -44,7 +44,7 @@ async function render_and_predict(app) {
   var render = function(t1) {
     requestAnimationFrame(render);
     var d = app.render();
-    if (t1 - t0 > 200 && d > 2e-3 && (!job || job.isResolved)) {
+    if (t1 - t0 > 200 && d > 1e-3 && (!job || job.isResolved)) {
       t0 = t1;
       var canvas = document.getElementById('example');
       var img = tf.fromPixels(canvas);
