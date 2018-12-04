@@ -8,16 +8,16 @@ This is the companion application to the paper:
 
 > [Michael A. Alcorn](https://sites.google.com/view/michaelaalcorn), Qi Li, Zhitao Gong, Chengfei Wang, Long Mai, Wei-Shinn Ku, and [Anh Nguyen](http://anhnguyen.me). [Strike (with) a pose: Neural networks are easily fooled by strange poses of familiar objects](https://arxiv.org/abs/1811.11553). arXiv 1811.11553. 2018.
 
- The application allows you to generate adversarial poses of objects with a graphical user interface. Please note that the included jeep object (freely available [here](https://free3d.com/3d-model/jeep-10771.html)) does not meet the realism standards set in the paper. Unfortunately, the school bus object shown in the GIF is proprietary and cannot be distributed with the application.
+ The application allows you to generate adversarial poses of objects with a graphical user interface. Please note that the included jeep object (freely available [here](https://free3d.com/3d-model/jeep-10771.html)) does not meet the realism standards set in the paper. Unfortunately, the school bus object shown in the GIF is proprietary and cannot be distributed with the application. A web port of the application (created by [Zhitao Gong](https://github.com/gongzhitaao)) can be found [here](https://airalcorn2.github.io/strike-with-a-pose/).
 
  If you use this application for your own research, please cite:
 
 ```
 @article{alcorn-2018-strike-with-a-pose,
-Author = {Alcorn, Michael A. and Li, Qi and Gong, Zhitao and Wang, Chengfei and Mai, Long and Ku, Wei-Shinn and Nguyen, Anh},
-Title = {{Strike (with) a Pose: Neural Networks Are Easily Fooled by Strange Poses of Familiar Objects}},
-Journal = {arXiv preprint},
-Year = {2018}
+    Author = {Alcorn, Michael A. and Li, Qi and Gong, Zhitao and Wang, Chengfei and Mai, Long and Ku, Wei-Shinn and Nguyen, Anh},
+    Title = {{Strike (with) a Pose: Neural Networks Are Easily Fooled by Strange Poses of Familiar Objects}},
+    Journal = {arXiv preprint},
+    Year = {2018}
 }
 ```
 
