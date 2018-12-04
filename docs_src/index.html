@@ -1,89 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>three.js webgl - OBJLoader2 basic usage</title>
+    <title>Strike with A Pose</title>
     <meta charset="utf-8">
+    <meta name="description" content="Strike (with) a Pose: Neural Networks Are Easily Fooled by Strange Poses of Familiar Objects">
+    <meta name="keywords" content="adversarial samples, deep learning, threejs, tensorflowjs, mobilenet">
+    <meta name="author" content="Zhitao Gong">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-
-    <style>
-     body {
-       font-family: Monospace;
-       /* background-color: #000; */
-       /* color: #fff; */
-       margin: 0 0 0 0;
-       padding: 0 0 0 0;
-       border: none;
-       cursor: default;
-     }
-     #info {
-       /* color: #fff; */
-       position: absolute;
-       top: 10px;
-       width: 100%;
-       text-align: center;
-       z-index: 100;
-       display:block;
-     }
-     #info a {
-       color: #f00;
-       font-weight: bold;
-       text-decoration: underline;
-       cursor: pointer
-     }
-     #glFullscreen {
-       width: 100%;
-       height: 100vh;
-       max-width: 600px;
-       max-height: 600px;
-       position: relative;
-       overflow: hidden;
-       z-index: 0;
-     }
-     #example {
-       width: 100%;
-       height: 100%;
-       top: 0;
-       left: 0;
-       background-color: #000;
-     }
-     #feedback {
-       color: darkorange;
-     }
-     #dat {
-       user-select: none;
-       position: absolute;
-       left: 0;
-       top: 0;
-       z-Index: 200;
-     }
-    </style>
-
+    <link rel="stylesheet" href="css/app.css">
   </head>
-
   <body>
-    <div id="glFullscreen">
-      <canvas id="example"></canvas>
+    <div class="content">
+      <div class="row main">
+        <div class="col demo">
+          <canvas id="example"></canvas>
+        </div>
+        <div class="col pred">
+          <div class="pred-wrapper">
+            <div id="predictions">
+              <p>0.0000 hello</p>
+              <p>0.0000 hello</p>
+              <p>0.0000 hello</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="push"></div>
     </div>
-    <div id="dat">
 
-    </div>
-
-    <div id="ybar">
-
-    </div>
-
-    <img id="tmp"/>
-    <div id="info">
-      <a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> - OBJLoader2 direct loader test
+    <footer class="footer">
       <div id="feedback"></div>
-    </div>
+      <img src="img/mouse-left-click.png"> drag to rotate
+      <img src="img/mouse-right-click.png"> drag to move
+      <img src="img/mouse-scrolling.png"> to zoom<br/>
+      Built with <a href="https://threejs.org">three.js</a> + <a href="https://js.tensorflow.org/">TensorFlow.js</a> &lt;3
+    </footer>
 
     <script src="js/jquery.min.js"></script>
 
     <script src="js/three.min.js"></script>
     <script src="js/TrackballControls.js"></script>
     <script src="js/MTLLoader.js"></script>
-    <script src="js/dat.gui.min.js"></script>
     <script src="js/LoaderSupport.js"></script>
     <script src="js/OBJLoader2.js"></script>
 

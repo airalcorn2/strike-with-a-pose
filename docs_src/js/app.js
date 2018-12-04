@@ -44,13 +44,13 @@ async function render_and_predict(app) {
   var render = function(t1) {
     requestAnimationFrame(render);
     var d = app.render();
-    if (t1 - t0 > 100 && d > 1e-3 && (!job || job.isResolved)) {
+    if (t1 - t0 > 200 && d > 2e-3 && (!job || job.isResolved)) {
       t0 = t1;
       var canvas = document.getElementById('example');
       var img = tf.fromPixels(canvas);
       job = model.classify(img);
       job.then(ybar => {
-        var $ybar = $('#ybar').empty();
+        var $ybar = $('#predictions').empty();
         var i, text = '';
         for (i = 0; i < ybar.length; ++i) {
           text = ybar[i]['probability'] + ' ' + ybar[i]['className'];
@@ -93,7 +93,6 @@ OBJLoader2Example.prototype = {
       canvas: this.canvas,
       antialias: true,
       autoClear: true,
-      preserveDrawingBuffer: true,
     });
     this.renderer.setClearColor(0xFFFFFF, 0);
 
@@ -151,10 +150,23 @@ OBJLoader2Example.prototype = {
 
   resizeDisplayGL: function() {
     this.controls.handleResize();
-    this.recalcAspectRatio();
-    this.renderer.setSize(
-      this.canvas.offsetWidth, this.canvas.offsetHeight, false);
-    this.updateCamera();
+
+    const canvas = this.renderer.domElement;
+    // look up the size the canvas is being displayed
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    var size = width < height ? width : height;
+
+    // adjust displayBuffer size to match
+    if (canvas.width !== size || canvas.height !== size) {
+      canvas.width = size;
+      canvas.height = size;
+      // you must pass false here or three.js sadly fights the browser
+      this.renderer.setSize(size, size, false);
+      this.aspectRatio = 1.0;
+      this.updateCamera();
+    }
   },
 
   recalcAspectRatio: function() {
