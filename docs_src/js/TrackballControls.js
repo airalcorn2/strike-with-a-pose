@@ -311,15 +311,18 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 		_this.object.lookAt( _this.target );
 
-		if ( lastPosition.distanceToSquared( _this.object.position ) > EPS ) {
+      var dist = lastPosition.distanceToSquared( _this.object.position );
 
-			_this.dispatchEvent( changeEvent );
+      if ( dist > EPS ) {
 
-			lastPosition.copy( _this.object.position );
+        _this.dispatchEvent( changeEvent );
 
-		}
+        lastPosition.copy( _this.object.position );
 
-	};
+      }
+
+      return dist;
+    };
 
 	this.reset = function () {
 

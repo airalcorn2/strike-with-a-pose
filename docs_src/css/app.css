@@ -1,0 +1,109 @@
+/* dead simple css: https://github.com/mourner/dead-simple-grid */
+
+.row .row { margin:  0  0; }
+.col      { padding: 0  0; }
+
+.row:after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+@media only screen {
+    .col {
+        float: left;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* dead simple css ends */
+
+/* sticky footer */
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+.content {
+    min-height: 100%;
+    margin-bottom: -7em;
+}
+.footer,
+.push {
+    height: 7em;
+}
+
+/* sticky footer ends */
+
+body {
+    font-family: Monospace;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.footer {
+    width: 100%;
+    text-align: center;
+    z-index: 100;
+    line-height: 2em;
+}
+
+.footer a {
+    color: #f00;
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer
+}
+
+.footer img {
+    height: 2.5em;
+    vertical-align: text-bottom;
+}
+
+#feedback {
+    color: darkorange;
+}
+
+.main {
+    height: 80vh;
+}
+
+.main .demo {
+    overflow: hidden;
+    z-index: 0;
+    width: 100%;
+    min-height: 200px;
+    height: 100%;
+    text-align: center;
+}
+
+.main .pred {
+    width: 100%;
+    text-align: left;
+    padding-left: 1em;
+}
+
+.pred-wrapper {
+    display: grid;
+    height: 100%;
+}
+
+.pred-wrapper>div {
+    margin: auto;
+    margin-left: 5px;
+}
+
+#example {
+    /* width: 100%; */
+    height: 100%;
+    background-color: #fff;
+}
+
+@media only screen and (min-width: 800px) {
+    .body { font-size: 14px; }
+    .main .demo { width: 50%; text-align: right; }
+    .main .pred { width: 50%; height: 100%; }
+}
