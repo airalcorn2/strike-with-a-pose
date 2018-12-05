@@ -45,6 +45,11 @@ async function render_and_predict(app) {
     }
   }
 
+  // first time render
+  app.render();
+  const img = tf.fromPixels(canvas);
+  await model.classify(img).then(show_result);
+
   const pred_fps = mobilecheck() ? 2 : 5;
   var t0 = performance.now();
   var moving = false;
