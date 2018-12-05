@@ -1,6 +1,12 @@
 $(document).ready(main);
 
 function main(jQuery) {
+  if (mobilecheck()) {
+    $('#icon-rotate').attr('src', 'img/hand-rotate.svg');
+    $('#icon-move').attr('src', 'img/hand-move.svg');
+    $('#icon-zoom').attr('src', 'img/hand-zoom.svg');
+  }
+
   var app = new OBJLoader2Example(document.getElementById('example'));
 
   $(window).resize(() => {app.resizeDisplayGL();});
@@ -38,6 +44,11 @@ async function render_and_predict(app) {
       $ybar.append($('<p></p>').text(t));
     }
   }
+
+  // first time render
+  app.render();
+  const img = tf.fromPixels(canvas);
+  await model.classify(img).then(show_result);
 
   const pred_fps = mobilecheck() ? 2 : 5;
   var t0 = performance.now();
