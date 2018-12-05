@@ -59,36 +59,28 @@ body {
 }
 
 .footer img {
-    height: 2.5em;
-    vertical-align: text-bottom;
+    height: 1.5em;
+    vertical-align: middle;
 }
 
 #feedback {
     color: darkorange;
 }
 
-.main {
-    height: 80vh;
-}
-
 .main .demo {
     overflow: hidden;
     z-index: 0;
-    width: 100%;
-    min-height: 200px;
-    height: 100%;
     text-align: center;
 }
 
 .main .pred {
-    width: 100%;
     text-align: left;
     padding-left: 1em;
+    height: 100%;
 }
 
 .pred-wrapper {
     display: grid;
-    height: 100%;
 }
 
 .pred-wrapper>div {
@@ -98,12 +90,11 @@ body {
 
 #example {
     /* width: 100%; */
-    height: 100%;
     background-color: #fff;
 }
 
 @media only screen and (min-width: 800px) {
     .body { font-size: 14px; }
     .main .demo { width: 50%; text-align: right; }
-    .main .pred { width: 50%; height: 100%; }
+    .main .pred { width: 50%; padding-top: 30vh; }
 }
