@@ -1,6 +1,12 @@
 $(document).ready(main);
 
 function main(jQuery) {
+  if (mobilecheck()) {
+    $('#icon-rotate').attr('src', 'img/hand-rotate.svg');
+    $('#icon-move').attr('src', 'img/hand-move.svg');
+    $('#icon-zoom').attr('src', 'img/hand-zoom.svg');
+  }
+
   var app = new OBJLoader2Example(document.getElementById('example'));
 
   $(window).resize(() => {app.resizeDisplayGL();});
