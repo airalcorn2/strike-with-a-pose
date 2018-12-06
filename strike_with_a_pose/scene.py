@@ -199,6 +199,7 @@ class Scene:
 
         self.boxes = []
         self.class_ids = []
+        self.confidences_list = []
         self.draw_boxes = False
         self.INDICES = []
         # load yolo
@@ -463,12 +464,15 @@ class Scene:
 
         image = np.array(pil_image)
         self.draw_boxes = True
+        self.boxes = []
+        self.class_ids = []
+        self.confidences_list = []
+        self.INDICES = []
 
         confidences = []
         org_boxes = []
         conf_threshold = 0.5
-        nms_threshold = 0.6
-        self.boxes = []
+        nms_threshold = 0.4
         Width = image.shape[1]
         Height = image.shape[0]
         scale = 0.00392
@@ -494,10 +498,6 @@ class Scene:
                     y = center_y_org - h / 2
                     org_boxes.append([x, y, w, h])
 
-
-
-
-
                     center_x = detection[0]*2-1
                     center_y = 1-detection[1]*2
                     half_w = detection[2]
@@ -505,7 +505,7 @@ class Scene:
 
                     self.class_ids.append(class_id)
                     confidences.append(float(confidence))
-
+                    self.confidences_list.append(float(confidence))
                     self.boxes.append(np.array([[center_x - half_w, center_y + half_h],
                                                 [center_x + half_w, center_y + half_h],
                                                 [center_x - half_w, center_y + half_h],
@@ -582,7 +582,7 @@ class Scene:
             box_x = box[0][0]
             box_y = box[0][1]
 
-            print (box_y)
+            print (i,str(self.classes[class_id]),self.confidences_list[i])
             full_array = np.zeros((8, 8))
             full_array[:, :2] = box
             box_vbo = self.CTX.buffer(full_array.astype("f4").tobytes())
