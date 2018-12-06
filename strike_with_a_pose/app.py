@@ -553,6 +553,7 @@ class Window(QWidget):
         vlo.setAlignment(self.scene_window, QtCore.Qt.AlignHCenter)
 
         # Prediction text.
+        '''
         pred_text = QLabel("<strong>Top Label</strong>: <br>"
                            "<strong>Top Probability</strong>: <br><br>"
                            "<strong>True Label</strong>: <br>"
@@ -563,14 +564,25 @@ class Window(QWidget):
 
         vlo.addWidget(pred_text)
         vlo.setAlignment(pred_text, QtCore.Qt.AlignHCenter)
-
+        '''
         # Predict button.
+        '''
         predict = QPushButton("Predict")
         predict.setFixedWidth(comp_width)
         predict.clicked.connect(self.scene_window.get_prediction)
 
         vlo.addWidget(predict)
         vlo.setAlignment(predict, QtCore.Qt.AlignHCenter)
+        '''
+
+        # Detection button
+        detection = QPushButton("Detection")
+        detection.setFixedWidth(comp_width)
+        detection.clicked.connect(self.scene_window.get_detection)
+
+        vlo.addWidget(detection)
+        vlo.setAlignment(detection, QtCore.Qt.AlignHCenter)
+
 
         # Component #3: instructions.
         ivlo = QVBoxLayout()
