@@ -371,8 +371,8 @@ class Scene:
 
         return np.dot(R_yaw, np.dot(R_pitch, R_roll))
 
-    def get_angles_from_R(self):
-        R = self.R.T
+    def get_angles_from_matrix(self, R):
+        R = R.T
         yaw = np.arctan2(R[0, 2], R[2, 2])
         roll = np.arctan2(R[1, 0], R[1, 1])
         pitch = np.arctan2(-R[1, 2], np.sqrt(R[1, 0] ** 2 + R[1, 1] ** 2))
@@ -383,14 +383,18 @@ class Scene:
         R_yaw = self.gen_rotation_matrix_from_angle_axis(angles[0], self.R[:, 1])
         R_pitch = self.gen_rotation_matrix_from_angle_axis(angles[1], self.R[:, 0])
         R_roll = self.gen_rotation_matrix_from_angle_axis(angles[2], self.R[:, 2])
-        self.R = np.dot(np.dot(R_yaw, np.dot(R_pitch, R_roll)), self.R)
+        R = np.dot(np.dot(R_yaw, np.dot(R_pitch, R_roll)), self.R)
+        (yaw, pitch, roll) = self.get_angles_from_matrix(R)
+        self.R = self.gen_rotation_matrix(yaw, pitch, roll).T
         self.PROG["R"].write(self.R.astype("f4").tobytes())
 
     def rotate_light(self, angles):
         L_yaw = self.gen_rotation_matrix_from_angle_axis(angles[0], self.L[:, 1])
         L_pitch = self.gen_rotation_matrix_from_angle_axis(angles[1], self.L[:, 0])
         L_roll = self.gen_rotation_matrix_from_angle_axis(angles[2], self.L[:, 2])
-        self.L = np.dot(np.dot(L_yaw, np.dot(L_pitch, L_roll)), self.L)
+        L = np.dot(np.dot(L_yaw, np.dot(L_pitch, L_roll)), self.L)
+        (yaw, pitch, roll) = self.get_angles_from_matrix(L)
+        self.L = self.gen_rotation_matrix(yaw, pitch, roll).T
         self.PROG["L"].write(self.L.astype("f4").tobytes())
 
     def predict(self, image):
@@ -409,7 +413,7 @@ class Scene:
     def get_params(self):
         (x, y) = self.PROG["Pan"].value
         z = self.PROG["Zoom"].value
-        (yaw, pitch, roll) = self.get_angles_from_R()
+        (yaw, pitch, roll) = self.get_angles_from_matrix(self.R)
 
         params = [("x_delta", x), ("y_delta", y), ("z_delta", z),
                   ("yaw", np.degrees(yaw)), ("pitch", np.degrees(pitch)), ("roll", np.degrees(roll)),
