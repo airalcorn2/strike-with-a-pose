@@ -35,6 +35,31 @@ VIEWING_ANGLE = 8.213
 ANGLE = 2 * 8.213
 perspective = Matrix44.perspective_projection(ANGLE, RATIO, 0.1, 1000.0)
 
+# yolo_v3 configuration files
+YOLO_CLASSES=pkg_resources.resource_filename("strike_with_a_pose", "yolov3.txt")
+YOLO_WEIGHTS=pkg_resources.resource_filename("strike_with_a_pose", "yolov3.weights")
+YOLO_CONFIG=pkg_resources.resource_filename("strike_with_a_pose", "yolo")
+
+def load_yolo_v3():
+    """Load the yolo_v3 weights and config and get the classes
+
+    :return:
+    """
+    with open(YOLO_CLASSES, 'r') as f:
+        classes = [line.strip() for line in f.readlines()]
+
+    yolo_colors=np.random.uniform(0, 255, size=(len(classes), 3))
+
+    net = cv2.dnn.readNet(YOLO_WEIGHTS, YOLO_CONFIG)
+
+    return classes, net, yolo_colors
+
+def get_yolo_output_layers(net):
+    layer_names = net.getLayerNames()
+
+    yolo_output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+
+    return yolo_output_layers
 
 def load_imagenet_label_map():
     """Map ImageNet integer indexes to labels.
@@ -171,6 +196,13 @@ class Scene:
         self.TOO_FAR = self.CAMERA_DISTANCE - 30.0
         self.TAN_ANGLE = np.tan(VIEWING_ANGLE * np.pi / 180.0)
 
+        self.boxes = []
+        self.class_ids = []
+        self.draw_boxes = False
+        self.INDICES = []
+        # load yolo
+        self.classes, self.net, self.yolo_colors = load_yolo_v3()
+
         # Load background.
         self.USE_BACKGROUND = False
         if BACKGROUND_F is not None:
@@ -290,37 +322,21 @@ class Scene:
 
             VAO.render()
 
-        draw_boxes = False
-        if draw_boxes:
-            # Every two rows define a line.
-            box_1 = np.array([[-0.5, -0.5],
-                              [-0.5, 0.5],
-                              [-0.5, -0.5],
-                              [0.5, -0.5],
-                              [-0.5, 0.5],
-                              [0.5, 0.5],
-                              [0.5, -0.5],
-                              [0.5, 0.5]])
-            box_2 = np.array([[-0.25, -0.25],
-                              [-0.25, 0.25],
-                              [-0.25, -0.25],
-                              [0.25, -0.25],
-                              [-0.25, 0.25],
-                              [0.25, 0.25],
-                              [0.25, -0.25],
-                              [0.25, 0.25]])
-            self.boxes = [box_1, box_2]
-            for box in self.boxes:
-                full_array = np.zeros((8, 8))
-                full_array[:, :2] = box
-                box_vbo = self.CTX.buffer(full_array.astype("f4").tobytes())
-                box_vao = self.CTX.simple_vertex_array(self.PROG, box_vbo, "in_vert",
-                                                       "in_norm", "in_text")
-                self.CTX.disable(moderngl.DEPTH_TEST)
-                self.PROG["mode"].value = 2
-                box_vao.render(moderngl.LINES)
-                self.CTX.enable(moderngl.DEPTH_TEST)
-                self.PROG["mode"].value = 0
+        if self.draw_boxes:
+
+            yolo_classes_f = "{0}{1}".format(SCENE_DIR, YOLO_CLASSES_F)
+            yolo_classes_img = Image.open(yolo_classes_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
+            #yolo_classes_img = Image.open(yolo_classes_f).convert("RGBA")
+
+            # Convert background image to ModernGL texture.
+            self.YOLO_CLASSES_I = self.CTX.texture(yolo_classes_img.size, 4, yolo_classes_img.tobytes())
+            self.YOLO_CLASSES_I.build_mipmaps()
+
+            add_box_and_labels()
+
+
+
+
 
     def pan(self, deltas):
         self.PROG["Pan"].value = deltas
@@ -439,3 +455,132 @@ class Scene:
         self.PROG["DirLight"].value = params["DirLight"]
         self.L = np.eye(3)
         self.PROG["L"].write(self.L.astype("f4").tobytes())
+
+
+
+    def detection(self,pil_image):
+
+        image = np.array(pil_image)
+        self.draw_boxes = True
+
+        confidences = []
+        org_boxes = []
+        conf_threshold = 0.5
+        nms_threshold = 0.4
+        self.boxes = []
+        Width = image.shape[1]
+        Height = image.shape[0]
+        scale = 0.00392
+
+
+        blob = cv2.dnn.blobFromImage(image, scale, (416, 416), (0, 0, 0), True, crop=False)
+
+        self.net.setInput(blob)
+
+        outs = self.net.forward(get_yolo_output_layers(self.net))
+
+        for out in outs:
+            for detection in out:
+                scores = detection[5:]
+                class_id = np.argmax(scores)
+                confidence = scores[class_id]
+                if confidence > 0.5:
+                    center_x_org = int(detection[0] * Width)
+                    center_y_org = int(detection[1] * Height)
+                    w = int(detection[2] * Width)
+                    h = int(detection[3] * Height)
+                    x = center_x_org - w / 2
+                    y = center_y_org - h / 2
+                    org_boxes.append([x, y, w, h])
+
+
+
+
+
+                    center_x = detection[0]*2-1
+                    center_y = 1-detection[1]*2
+                    half_w = detection[2]
+                    half_h = detection[3]
+
+                    self.class_ids.append(class_id)
+                    confidences.append(float(confidence))
+
+                    self.boxes.append(np.array([[center_x - half_w, center_y + half_h],
+                                                [center_x + half_w, center_y + half_h],
+                                                [center_x - half_w, center_y + half_h],
+                                                [center_x - half_w, center_y - half_h],
+                                                [center_x + half_w, center_y + half_h],
+                                                [center_x + half_w, center_y - half_h],
+                                                [center_x + half_w, center_y - half_h],
+                                                [center_x - half_w, center_y - half_h]]))
+                    #self.predict_class.append(str(self.classes[class_id]))
+        self.INDICES = cv2.dnn.NMSBoxes(org_boxes, confidences, conf_threshold, nms_threshold)
+
+    def add_box_and_labels(self):
+
+        for class_id, box in zip(self.class_ids, self.boxes):
+            num_row = (class_id) % 20
+            num_column = int((class_id) / 20)
+            # print (num_row,num_column)
+            box_x = box[0][0]
+            box_y = box[0][1]
+
+            print (box_y)
+            full_array = np.zeros((8, 8))
+            full_array[:, :2] = box
+            box_vbo = self.CTX.buffer(full_array.astype("f4").tobytes())
+            box_vao = self.CTX.simple_vertex_array(self.PROG, box_vbo, "in_vert",
+                                                   "in_norm", "in_text")
+
+            # Create background 3D object consisting of two triangles forming a
+            # rectangle.
+            # Screen coordinates are [-1, 1].
+            '''
+            vertices_yolo = np.array([[0.0, 30.0 / 299, 0.0],
+                                      [0.0, 0.0, 0.0],
+                                      [150.0 / 299, 30.0 / 299, 0.0],
+                                      [150.0 / 299, 0.0, 0.0],
+                                      [150.0 / 299, 30.0 / 299, 0.0],
+                                      [0.0, 0.0, 0.0]])
+            '''
+            vertices_yolo = np.array([[box_x, box_y, 0.0],
+                                      [box_x, box_y - 30.0 / 299, 0.0],
+                                      [box_x + 150.0 / 299, box_y, 0.0],
+                                      [box_x + 150.0 / 299, box_y - 30.0 / 299, 0.0],
+                                      [box_x + 150.0 / 299, box_y, 0.0],
+                                      [box_x, box_y - 30.0 / 299, 0.0]])
+
+            # Not used for the background, but the vertex shader expects a normal.
+            normals = np.repeat([[0.0, 0.0, 1.0]], len(vertices_yolo), axis=0)
+            # Image coordinates are [0, 1].
+            '''
+            yolo_coords = np.array([[0.0, 1.0 - 3 * 50.0 / 1024],
+                                    [0.0, 1.0 - 4 * 50.0 / 1024],
+                                    [0.25, 1.0 - 3 * 50.0 / 1024],
+                                    [0.25, 1.0 - 4 * 50.0 / 1024],
+                                    [0.25, 1.0 - 3 * 50.0 / 1024],
+                                    [0.0, 1.0 - 4 * 50.0 / 1024]])
+            '''
+            yolo_coords = np.array([[0.25 * num_column, 1.0 - num_row * (48.96 / 1024)],
+                                    [0.25 * num_column, 1.0 - (num_row + 1) * (48.96 / 1024) + 1.0 / 1024],
+                                    [0.25 * (num_column + 1), 1.0 - num_row * (48.96 / 1024)],
+                                    [0.25 * (num_column + 1), 1.0 - (num_row + 1) * (48.96 / 1024) + 1.0 / 1024],
+                                    [0.25 * (num_column + 1), 1.0 - num_row * (48.96 / 1024)],
+                                    [0.25 * num_column, 1.0 - (num_row + 1) * (48.96 / 1024) + 1.0 / 1024]])
+
+            YOLO_CLASSES_ARRAY = np.hstack((vertices_yolo, normals, yolo_coords))
+            YOLO_CLASSES_VBO = self.CTX.buffer(YOLO_CLASSES_ARRAY.flatten().astype("f4").tobytes())
+            self.YOLO_CLASSES_VAO = self.CTX.simple_vertex_array(self.PROG, YOLO_CLASSES_VBO,
+                                                                 "in_vert", "in_norm",
+                                                                 "in_text")
+
+            self.CTX.disable(moderngl.DEPTH_TEST)
+            self.PROG["mode"].value = 2
+            box_vao.render(moderngl.LINES)
+
+            self.PROG["mode"].value = 1
+
+            self.YOLO_CLASSES_I.use()
+            self.YOLO_CLASSES_VAO.render()
+            self.CTX.enable(moderngl.DEPTH_TEST)
+            self.PROG["mode"].value = 0

@@ -382,6 +382,26 @@ class SceneWindow(QOpenGLWidget):
                                "<strong>True Label</strong>: {2}<br>"
                                "<strong>True Label Probability</strong>: {3:.4f}<br>".format(top_label, top_prob, true_label, true_prob))
 
+    def get_detection(self):
+        # See: https://stackoverflow.com/questions/1733096/convert-pyqt-to-pil-image.
+        self.scene.draw_boxes = False
+        #self.paintGL()
+        buffer = QtCore.QBuffer()
+        buffer.open(QtCore.QIODevice.ReadWrite)
+        qimage = self.grabFramebuffer()
+        qimage.save(buffer, "PNG")
+
+
+        strio = io.BytesIO()
+        strio.write(buffer.data())
+        buffer.close()
+        strio.seek(0)
+        pil_im = Image.open(strio)
+        # Macs are dumb.
+        pil_im = pil_im.resize(self.scene.WINDOW_SIZE)
+        self.scene.detection(pil_im)
+        #self.scene.draw_boxes = False
+
     def keyReleaseEvent(self, event):
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = False
 
@@ -455,11 +475,11 @@ class SceneWindow(QOpenGLWidget):
             self.scene.set_params(INITIAL_PARAMS)
             self.fill_entry_form()
             self.scene.render()
-            self.get_prediction()
+            #self.get_prediction()
         self.wnd.time = time.clock() - self.start_time
         self.scene.render()
-        if self.live:
-            self.get_prediction()
+        #if self.live:
+        #    self.get_prediction()
 
         self.wnd.old_keys = np.copy(self.wnd.keys)
         self.wnd.wheel = 0
