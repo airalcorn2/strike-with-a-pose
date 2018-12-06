@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Strike with A Pose</title>
+    <meta charset="utf-8">
+    <meta name="description" content="Strike (with) a Pose: Neural Networks Are Easily Fooled by Strange Poses of Familiar Objects">
+    <meta name="keywords" content="adversarial samples, deep learning, threejs, tensorflowjs, mobilenet">
+    <meta name="author" content="Zhitao Gong">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <div class="content">
+      <div class="row main">
+        <div id="demo" class="col demo">
+          <canvas id="example"></canvas>
+        </div>
+        <div class="col pred">
+          <div class="pred-wrapper">
+            <div id="predictions">
+              <div id="feedback"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="push"></div>
+    </div>
+
+    <footer class="footer">
+      <!-- the mouse icon comes from https://icons8.com/ -->
+      <!-- the hand icon comes from https://www.flaticon.com/packs/basic-hand-gestures-lineal -->
+      <img id="icon-rotate" src="img/mouse-left-click.png"> drag to rotate
+      <img id="icon-move" src="img/mouse-right-click.png"> drag to move
+      <img id="icon-zoom" src="img/mouse-scrolling.png"> to zoom<br/>
+      Built with <a href="https://threejs.org">three.js</a> + <a href="https://js.tensorflow.org/">TensorFlow.js</a> &lt;3
+    </footer>
+
+    <script src="js/jquery.min.js"></script>
+
+    <script src="js/three.min.js"></script>
+    <script src="js/TrackballControls.js"></script>
+    <script src="js/MTLLoader.js"></script>
+    <script src="js/LoaderSupport.js"></script>
+    <script src="js/OBJLoader2.js"></script>
+
+    <script src="js/tf.min.js"></script>
+    <script src="js/mobilenet.js"></script>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
