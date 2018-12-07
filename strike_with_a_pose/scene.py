@@ -562,7 +562,7 @@ class Scene:
 
             YOLO_CLASSES_ARRAY = np.hstack((vertices_yolo, normals, yolo_coords))
             YOLO_CLASSES_VBO = self.CTX.buffer(YOLO_CLASSES_ARRAY.flatten().astype("f4").tobytes())
-            self.YOLO_CLASSES_VAO = self.CTX.simple_vertex_array(self.PROG, YOLO_CLASSES_VBO,
+            YOLO_CLASSES_VAO = self.CTX.simple_vertex_array(self.PROG, YOLO_CLASSES_VBO,
                                                                  "in_vert", "in_norm",
                                                                  "in_text")
 
@@ -573,9 +573,11 @@ class Scene:
             self.PROG["mode"].value = 1
 
             self.YOLO_CLASSES_I.use()
-            self.YOLO_CLASSES_VAO.render()
+            YOLO_CLASSES_VAO.render()
             self.CTX.enable(moderngl.DEPTH_TEST)
             self.PROG["mode"].value = 0
 
             box_vbo.release()
+            box_vao.release()
             YOLO_CLASSES_VBO.release()
+            YOLO_CLASSES_VAO.release()
