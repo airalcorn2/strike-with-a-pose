@@ -481,8 +481,9 @@ class SceneWindow(QOpenGLWidget):
             #self.get_prediction()
         self.wnd.time = time.clock() - self.start_time
         self.scene.render()
-        #if self.live:
+        if self.live:
         #    self.get_prediction()
+            self.get_detection()
 
         self.wnd.old_keys = np.copy(self.wnd.keys)
         self.wnd.wheel = 0
