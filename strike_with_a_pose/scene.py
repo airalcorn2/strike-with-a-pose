@@ -582,7 +582,7 @@ class Scene:
             box_x = box[0][0]
             box_y = box[0][1]
 
-            print (i,str(self.classes[class_id]),self.confidences_list[i])
+            #print (i,str(self.classes[class_id]),self.confidences_list[i])
             full_array = np.zeros((8, 8))
             full_array[:, :2] = box
             box_vbo = self.CTX.buffer(full_array.astype("f4").tobytes())
