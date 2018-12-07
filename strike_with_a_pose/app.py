@@ -4,6 +4,9 @@ import io
 import numpy as np
 import pkg_resources
 import time
+import requests
+import os
+import urllib.request
 
 from OpenGL import GL
 from PIL import Image
@@ -620,6 +623,14 @@ class Window(QWidget):
 
 
 def run_gui():
+
+    YOLO_WEIGHTS = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.weights")
+    if not os.path.isfile(YOLO_WEIGHTS):
+        print ("YOLO weights file is downloading...")
+        url = "https://pjreddie.com/media/files/yolov3.weights"
+        urllib.request.urlretrieve(url, YOLO_WEIGHTS)
+
+
     app = QtWidgets.QApplication([])
     widget = Window("Strike (With) A Pose")
     Scene.wnd = widget.scene_window.wnd
