@@ -1,4 +1,4 @@
-MODEL_TYPE = "classifier"
+MODEL_TYPE = "object detector"
 USE_INCEPTION = True
 BACKGROUND_F = "background_object_detector.jpg"
 TEXTURE_FS = ["interior.tga", "exterior.tga", "glass.tga"]
