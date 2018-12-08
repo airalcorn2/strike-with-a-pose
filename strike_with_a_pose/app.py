@@ -4,9 +4,6 @@ import io
 import numpy as np
 import pkg_resources
 import time
-import requests
-import os
-import urllib.request
 
 from OpenGL import GL
 from PIL import Image
@@ -15,20 +12,10 @@ from PyQt5.QtGui import QSurfaceFormat
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QLabel, QLineEdit
 from PyQt5.QtWidgets import QMessageBox, QOpenGLWidget, QPushButton, QVBoxLayout
 from PyQt5.QtWidgets import QWidget
-from strike_with_a_pose.scene import Scene
+from settings import MODEL_TYPE
+from strike_with_a_pose.scene import INITIAL_PARAMS, Scene
 
 INSTRUCTIONS_F = pkg_resources.resource_filename("strike_with_a_pose",  "instructions.html")
-INITIAL_PARAMS = {
-    "x_delta": -0.3865,
-    "y_delta": 0.6952,
-    "z_delta": -9.6000,
-    "yaw": -138.0867,
-    "pitch": -3.8813,
-    "roll": -2.8028,
-    "amb_int": 0.7000,
-    "dir_int": 0.7000,
-    "DirLight": (0.0000, 1.0000, 0.000)
-}
 
 fmt = QSurfaceFormat()
 fmt.setVersion(3, 3)
@@ -319,6 +306,8 @@ class SceneWindow(QOpenGLWidget):
 
         if event.key() == QtCore.Qt.Key_B:
             self.scene.USE_BACKGROUND = not self.scene.USE_BACKGROUND
+            if MODEL_TYPE == "object detector":
+                self.scene.clear_boxes_and_labels()
 
         if event.key() == QtCore.Qt.Key_X:
             self.scene.PROG["use_texture"].value = not self.scene.PROG["use_texture"].value
@@ -375,35 +364,16 @@ class SceneWindow(QOpenGLWidget):
         buffer.close()
         strio.seek(0)
         pil_im = Image.open(strio)
-        # Macs are dumb.
         pil_im = pil_im.resize(self.scene.WINDOW_SIZE)
 
-        (top_label, top_prob, true_label, true_prob) = self.scene.predict(pil_im)
-
-        self.pred_text.setText("<strong>Top Label</strong>: {0}<br>"
-                               "<strong>Top Label Probability</strong>: {1:.4f}<br><br>"
-                               "<strong>True Label</strong>: {2}<br>"
-                               "<strong>True Label Probability</strong>: {3:.4f}<br>".format(top_label, top_prob, true_label, true_prob))
-
-    def get_detection(self):
-        # See: https://stackoverflow.com/questions/1733096/convert-pyqt-to-pil-image.
-        self.scene.draw_boxes = False
-        #self.paintGL()
-        buffer = QtCore.QBuffer()
-        buffer.open(QtCore.QIODevice.ReadWrite)
-        qimage = self.grabFramebuffer()
-        qimage.save(buffer, "PNG")
-
-
-        strio = io.BytesIO()
-        strio.write(buffer.data())
-        buffer.close()
-        strio.seek(0)
-        pil_im = Image.open(strio)
-        # Macs are dumb.
-        pil_im = pil_im.resize(self.scene.WINDOW_SIZE)
-        self.scene.detection(pil_im)
-        #self.scene.draw_boxes = False
+        if MODEL_TYPE == "classifier":
+            (top_label, top_prob, true_label, true_prob) = self.scene.predict(pil_im)
+            self.pred_text.setText("<strong>Top Label</strong>: {0}<br>"
+                                   "<strong>Top Label Probability</strong>: {1:.4f}<br><br>"
+                                   "<strong>True Label</strong>: {2}<br>"
+                                   "<strong>True Label Probability</strong>: {3:.4f}<br>".format(top_label, top_prob, true_label, true_prob))
+        elif MODEL_TYPE == "object detector":
+            self.scene.predict(pil_im)
 
     def keyReleaseEvent(self, event):
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = False
@@ -421,6 +391,10 @@ class SceneWindow(QOpenGLWidget):
         elif not self.rotate:
             self.wheel_tool.zooming(steps)
             self.scene.zoom(self.wheel_tool.total_z)
+
+        if not self.rotate and MODEL_TYPE == "object detector":
+            self.scene.clear_boxes_and_labels()
+
         self.update()
         self.fill_entry_form()
 
@@ -436,6 +410,8 @@ class SceneWindow(QOpenGLWidget):
             self.scene.pan(self.pan_tool.get_value(np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)))
         self.update()
         self.fill_entry_form()
+        if MODEL_TYPE == "object detector":
+            self.scene.clear_boxes_and_labels()
 
     def mouseMoveEvent(self, evt):
         if self.rotate:
@@ -478,12 +454,13 @@ class SceneWindow(QOpenGLWidget):
             self.scene.set_params(INITIAL_PARAMS)
             self.fill_entry_form()
             self.scene.render()
-            #self.get_prediction()
+            if MODEL_TYPE == "classifier":
+                self.get_prediction()
+
         self.wnd.time = time.clock() - self.start_time
         self.scene.render()
         if self.live:
-        #    self.get_prediction()
-            self.get_detection()
+            self.get_prediction()
 
         self.wnd.old_keys = np.copy(self.wnd.keys)
         self.wnd.wheel = 0
@@ -556,37 +533,35 @@ class Window(QWidget):
         vlo.addWidget(self.scene_window)
         vlo.setAlignment(self.scene_window, QtCore.Qt.AlignHCenter)
 
-        # Prediction text.
-        '''
-        pred_text = QLabel("<strong>Top Label</strong>: <br>"
-                           "<strong>Top Probability</strong>: <br><br>"
-                           "<strong>True Label</strong>: <br>"
-                           "<strong>True Probability</strong>: ")
-        self.scene_window.pred_text = pred_text
-        pred_text.setFixedSize(comp_width, 100)
-        pred_text.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
+        if MODEL_TYPE == "classifier":
+            # Prediction text.
+            pred_text = QLabel("<strong>Top Label</strong>: <br>"
+                               "<strong>Top Probability</strong>: <br><br>"
+                               "<strong>True Label</strong>: <br>"
+                               "<strong>True Probability</strong>: ")
+            self.scene_window.pred_text = pred_text
+            pred_text.setFixedSize(comp_width, 100)
+            pred_text.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
 
-        vlo.addWidget(pred_text)
-        vlo.setAlignment(pred_text, QtCore.Qt.AlignHCenter)
-        '''
-        # Predict button.
-        '''
-        predict = QPushButton("Predict")
-        predict.setFixedWidth(comp_width)
-        predict.clicked.connect(self.scene_window.get_prediction)
+            vlo.addWidget(pred_text)
+            vlo.setAlignment(pred_text, QtCore.Qt.AlignHCenter)
 
-        vlo.addWidget(predict)
-        vlo.setAlignment(predict, QtCore.Qt.AlignHCenter)
-        '''
+            # Predict button.
+            predict = QPushButton("Predict")
+            predict.setFixedWidth(comp_width)
+            predict.clicked.connect(self.scene_window.get_prediction)
 
-        # Detection button
-        detection = QPushButton("Detection")
-        detection.setFixedWidth(comp_width)
-        detection.clicked.connect(self.scene_window.get_detection)
+            vlo.addWidget(predict)
+            vlo.setAlignment(predict, QtCore.Qt.AlignHCenter)
 
-        vlo.addWidget(detection)
-        vlo.setAlignment(detection, QtCore.Qt.AlignHCenter)
+        elif MODEL_TYPE == "object detector":
+            # Detect button.
+            detect = QPushButton("Detect")
+            detect.setFixedWidth(comp_width)
+            detect.clicked.connect(self.scene_window.get_prediction)
 
+            vlo.addWidget(detect)
+            vlo.setAlignment(detect, QtCore.Qt.AlignHCenter)
 
         # Component #3: instructions.
         ivlo = QVBoxLayout()
@@ -624,14 +599,6 @@ class Window(QWidget):
 
 
 def run_gui():
-
-    YOLO_WEIGHTS = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.weights")
-    if not os.path.isfile(YOLO_WEIGHTS):
-        print ("YOLO weights file is downloading...")
-        url = "https://pjreddie.com/media/files/yolov3.weights"
-        urllib.request.urlretrieve(url, YOLO_WEIGHTS)
-
-
     app = QtWidgets.QApplication([])
     widget = Window("Strike (With) A Pose")
     Scene.wnd = widget.scene_window.wnd
