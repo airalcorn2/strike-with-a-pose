@@ -354,7 +354,9 @@ class SceneWindow(QOpenGLWidget):
 
     def get_prediction(self):
         # See: https://stackoverflow.com/questions/1733096/convert-pyqt-to-pil-image.
-        self.scene.clear_boxes_and_labels()
+        if MODEL_TYPE == "object detector":
+            self.scene.clear_boxes_and_labels()
+
         buffer = QtCore.QBuffer()
         buffer.open(QtCore.QIODevice.ReadWrite)
         qimage = self.grabFramebuffer()
