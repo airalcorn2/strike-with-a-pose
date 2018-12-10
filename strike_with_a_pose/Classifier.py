@@ -64,8 +64,6 @@ class Classifier(nn.Module):
 
     def forward(self, input_image):
         image_normalized = self.preprocess(input_image)
-
-        # Generate predictions.
         out = self.net(image_normalized[None, :, :, :])
         return out
 
