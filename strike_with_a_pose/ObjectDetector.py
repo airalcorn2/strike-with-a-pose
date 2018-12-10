@@ -136,16 +136,16 @@ class ObjectDetector:
 
             normals = np.repeat([[0.0, 0.0, 1.0]], len(vertices_yolo), axis=0)
 
-            img_label_height = 48.96
-            label_img_size = 1024
+            label_height_pix = 48.96
+            img_size_pix = 1024
             num_cols = 4
             yolo_coords = np.array(
-                [[col_num / num_cols, 1.0 - row_num * (img_label_height / label_img_size)],
-                 [col_num / num_cols, 1.0 - (row_num + 1) * (img_label_height / label_img_size) + 1.0 / label_img_size],
-                 [(col_num + 1) / num_cols, 1.0 - row_num * (img_label_height / label_img_size)],
-                 [(col_num + 1) / num_cols, 1.0 - (row_num + 1) * (img_label_height / label_img_size) + 1.0 / label_img_size],
-                 [(col_num + 1) / num_cols, 1.0 - row_num * (img_label_height / label_img_size)],
-                 [col_num / num_cols, 1.0 - (row_num + 1) * (img_label_height / label_img_size) + 1.0 / label_img_size]])
+                [[col_num / num_cols, 1.0 - row_num * (label_height_pix / img_size_pix)],
+                 [col_num / num_cols, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix],
+                 [(col_num + 1) / num_cols, 1.0 - row_num * (label_height_pix / img_size_pix)],
+                 [(col_num + 1) / num_cols, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix],
+                 [(col_num + 1) / num_cols, 1.0 - row_num * (label_height_pix / img_size_pix)],
+                 [col_num / num_cols, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix]])
             label_array = np.hstack((vertices_yolo, normals, yolo_coords))
             label_arrays.append(label_array)
 
