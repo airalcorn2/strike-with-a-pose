@@ -16,8 +16,6 @@ SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/"
 
 
 class ObjectDetector:
-    name = "object detector"
-
     def __init__(self):
         classes = len(open(YOLO_CLASSES, "r").readlines())
         self.yolo_rgbs = np.random.uniform(0, 255, size=(classes, 3)) / 255.0

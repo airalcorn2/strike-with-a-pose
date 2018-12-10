@@ -16,8 +16,6 @@ CLASS_F = "obj.cls"
 
 
 class Classifier(nn.Module):
-    name = "classifer"
-
     def __init__(self):
         super(Classifier, self).__init__()
         if USE_INCEPTION:
