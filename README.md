@@ -96,7 +96,7 @@ PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 
 ### Using Different Machine Learning Models
 
-Users can experiment with different machine learning models in `strike-with-a-pose` by ***(1)*** defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (see [`Classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/Classifier.py) and [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py) for examples), ***(2)*** setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly, and run the following command inside the `strike-with-a-pose/` directory:
+Users can experiment with different machine learning models in `strike-with-a-pose` by ***(1)*** defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (see [`Classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/Classifier.py) and [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py) for examples), ***(2)*** setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly, and running the following command inside the `strike-with-a-pose/` directory:
 
 ```bash
 PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
