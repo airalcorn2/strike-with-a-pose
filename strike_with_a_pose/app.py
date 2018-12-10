@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QLabel, QLineEdit
 from PyQt5.QtWidgets import QMessageBox, QOpenGLWidget, QPushButton, QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 from strike_with_a_pose.scene import Scene
-from strike_with_a_pose.settings import GET_GUI_COMPS, INITIAL_PARAMS, MODEL
+from strike_with_a_pose.settings import INITIAL_PARAMS, MODEL
 
 INSTRUCTIONS_F = pkg_resources.resource_filename("strike_with_a_pose",  "instructions.html")
 
@@ -539,7 +539,7 @@ class Window(QWidget):
 
         # Model-specific GUI components.
         model_gui_comps = {}
-        for (name, comp) in GET_GUI_COMPS():
+        for (name, comp) in MODEL.get_gui_comps():
             if name == "predict":
                 comp.clicked.connect(self.scene_window.get_prediction)
 

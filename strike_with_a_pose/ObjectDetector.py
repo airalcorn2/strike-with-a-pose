@@ -6,6 +6,7 @@ import pkg_resources
 import urllib
 
 from PIL import Image
+from PyQt5.QtWidgets import QPushButton
 
 YOLO_CLASSES = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.txt")
 YOLO_WEIGHTS = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.weights")
@@ -35,6 +36,13 @@ class ObjectDetector:
         self.YOLO_BOX_VAOS = []
         self.YOLO_LABEL_VBOS = []
         self.YOLO_LABEL_VAOS = []
+
+    @staticmethod
+    def get_gui_comps():
+        # Detect button.
+        detect = QPushButton("Detect")
+        # Order matters. Prediction button must be named "predict" in tuple.
+        return [("predict", detect)]
 
     def init_scene_comps(self):
         yolo_classes_f = "{0}{1}".format(SCENE_DIR, YOLO_CLASSES_F)

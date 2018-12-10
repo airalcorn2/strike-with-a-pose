@@ -5,6 +5,9 @@ import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
 
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QLabel, QPushButton
+
 USE_INCEPTION = True
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 IMAGENET_F = pkg_resources.resource_filename("strike_with_a_pose", "imagenet_classes.txt")
@@ -44,6 +47,19 @@ class Classifier(nn.Module):
 
         input_f.close()
         return label_map
+
+    @staticmethod
+    def get_gui_comps():
+        # Prediction text.
+        pred_text = QLabel("<strong>Top Label</strong>: <br>"
+                           "<strong>Top Probability</strong>: <br><br>"
+                           "<strong>True Label</strong>: <br>"
+                           "<strong>True Probability</strong>: ")
+        pred_text.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
+        # Predict button.
+        predict = QPushButton("Predict")
+        # Order matters. Prediction button must be named "predict" in tuple.
+        return [("pred_text", pred_text), ("predict", predict)]
 
     def init_scene_comps(self):
         pass
