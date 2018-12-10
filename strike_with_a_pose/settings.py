@@ -1,7 +1,7 @@
 from strike_with_a_pose.Classifier import Classifier
 from strike_with_a_pose.ObjectDetector import ObjectDetector
 
-MODEL_TYPE = "object_detector"
+MODEL_TYPE = "classifier"
 
 MODELS = {"classifier": Classifier, "object_detector": ObjectDetector}
 MODEL = MODELS[MODEL_TYPE]
