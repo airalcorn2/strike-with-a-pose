@@ -543,7 +543,6 @@ class Window(QWidget):
             if name == "predict":
                 comp.clicked.connect(self.scene_window.get_prediction)
 
-            # comp.setFixedSize(comp_width, 100)
             comp.setFixedWidth(comp_width)
             vlo.addWidget(comp)
             vlo.setAlignment(comp, QtCore.Qt.AlignHCenter)
