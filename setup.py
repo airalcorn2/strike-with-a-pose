@@ -7,6 +7,7 @@ setup(name="strike_with_a_pose",
       author_email="alcorma@auburn.edu",
       packages=["strike_with_a_pose"],
       install_requires=[
+          "cv2>=3.4.3",
           "moderngl>=5.4.2",
           "numpy>=1.15.4",
           "objloader>=0.2.0",
