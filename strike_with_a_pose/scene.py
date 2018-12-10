@@ -21,7 +21,7 @@ TARGET = np.zeros(3)
 UP = np.array([0.0, 1.0, 0.0])
 LOOK_AT = Matrix44.look_at(EYE, TARGET, UP)
 
-(WIDTH, HEIGHT) = (299, 299) if USE_INCEPTION else (224, 224)
+(WIDTH, HEIGHT) = (299, 299)
 RATIO = float(WIDTH) / float(HEIGHT)
 VIEWING_ANGLE = 8.213
 ANGLE = 2 * 8.213
@@ -33,13 +33,6 @@ class Scene:
     wnd = None
 
     def __init__(self):
-        if MODEL_TYPE == "classifier":
-            from Classifier import Model
-        elif MODEL_TYPE == "object detector":
-            from ObjectDetector import Model
-
-        self.MODEL = Model()
-
         self.CTX = moderngl.create_context()
         self.PROG = self.CTX.program(
             vertex_shader="""
@@ -221,16 +214,6 @@ class Scene:
 
         self.VAOS = VAOS
 
-        if MODEL_TYPE == "object detector":
-            yolo_classes_f = "{0}{1}".format(SCENE_DIR, YOLO_CLASSES_F)
-            yolo_classes_img = Image.open(yolo_classes_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
-            self.YOLO_LABELS = self.CTX.texture(yolo_classes_img.size, 4, yolo_classes_img.tobytes())
-            self.YOLO_LABELS.build_mipmaps()
-            self.YOLO_BOX_VBOS = []
-            self.YOLO_BOX_VAOS = []
-            self.YOLO_LABEL_VBOS = []
-            self.YOLO_LABEL_VAOS = []
-
     def render(self):
         self.CTX.viewport = self.wnd.viewport
 
@@ -253,18 +236,7 @@ class Scene:
 
             VAO.render()
 
-        if MODEL_TYPE == "object detector":
-            for i in range(len(self.YOLO_BOX_VAOS)):
-                self.CTX.disable(moderngl.DEPTH_TEST)
-                self.PROG["mode"].value = 2
-                self.PROG["box_rgb"].value = tuple(self.BOX_RGBS[i])
-                self.YOLO_BOX_VAOS[i].render(moderngl.LINES)
-
-                self.PROG["mode"].value = 1
-                self.YOLO_LABELS.use()
-                self.YOLO_LABEL_VAOS[i].render()
-                self.CTX.enable(moderngl.DEPTH_TEST)
-                self.PROG["mode"].value = 0
+        self.MODEL.render()
 
     def pan(self, deltas):
         self.PROG["Pan"].value = deltas
@@ -340,12 +312,6 @@ class Scene:
         self.L = self.gen_rotation_matrix(yaw, pitch, roll).T
         self.PROG["L"].write(self.L.astype("f4").tobytes())
 
-    def predict(self, image):
-        if MODEL_TYPE == "classifier":
-            return self.MODEL.classify(image)
-        elif MODEL_TYPE == "object detector":
-            self.add_boxes_and_labels(*self.MODEL.detect(image))
-
     def get_params(self):
         (x, y) = self.PROG["Pan"].value
         z = self.PROG["Zoom"].value
@@ -375,35 +341,3 @@ class Scene:
         self.PROG["DirLight"].value = params["DirLight"]
         self.L = np.eye(3)
         self.PROG["L"].write(self.L.astype("f4").tobytes())
-
-    def clear_boxes_and_labels(self):
-        for i in range(len(self.YOLO_BOX_VAOS)):
-            self.YOLO_BOX_VBOS[i].release()
-            self.YOLO_BOX_VAOS[i].release()
-            self.YOLO_LABEL_VBOS[i].release()
-            self.YOLO_LABEL_VAOS[i].release()
-
-        self.YOLO_BOX_VBOS = []
-        self.YOLO_BOX_VAOS = []
-
-        self.YOLO_LABEL_VBOS = []
-        self.YOLO_LABEL_VAOS = []
-
-    def add_boxes_and_labels(self, box_arrays, label_arrays, box_rgbs):
-        self.clear_boxes_and_labels()
-        self.BOX_RGBS = box_rgbs
-        for i in range(len(box_arrays)):
-            box_array = box_arrays[i]
-            box_vbo = self.CTX.buffer(box_array.astype("f4").tobytes())
-            box_vao = self.CTX.simple_vertex_array(self.PROG, box_vbo, "in_vert",
-                                                   "in_norm", "in_text")
-            self.YOLO_BOX_VBOS.append(box_vbo)
-            self.YOLO_BOX_VAOS.append(box_vao)
-
-            label_array = label_arrays[i]
-            label_vbo = self.CTX.buffer(label_array.flatten().astype("f4").tobytes())
-            label_vao = self.CTX.simple_vertex_array(self.PROG, label_vbo,
-                                                     "in_vert", "in_norm",
-                                                     "in_text")
-            self.YOLO_LABEL_VBOS.append(label_vbo)
-            self.YOLO_LABEL_VAOS.append(label_vao)
