@@ -12,7 +12,7 @@ USE_INCEPTION = True
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 IMAGENET_F = pkg_resources.resource_filename("strike_with_a_pose", "imagenet_classes.txt")
 SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
-CLASS_F = "obj.cls"
+TRUE_CLASS = 609
 
 
 class Classifier(nn.Module):
@@ -32,7 +32,7 @@ class Classifier(nn.Module):
 
         self.label_map = self.load_imagenet_label_map()
 
-        self.true_class = int(open("{0}{1}".format(SCENE_DIR, CLASS_F)).read())
+        self.true_class = TRUE_CLASS
         self.true_label = self.label_map[self.true_class]
 
     def load_imagenet_label_map(self):
