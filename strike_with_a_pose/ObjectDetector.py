@@ -17,8 +17,10 @@ SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/"
 
 class ObjectDetector:
     def __init__(self):
-        classes = len(open(YOLO_CLASSES, "r").readlines())
-        self.yolo_rgbs = np.random.uniform(0, 255, size=(classes, 3)) / 255.0
+        self.classes = open(YOLO_CLASSES, "r").readlines()
+        classes_num = len(self.classes)
+
+        self.yolo_rgbs = np.random.uniform(0, 255, size=(classes_num, 3)) / 255.0
 
         if not os.path.isfile(YOLO_WEIGHTS):
             print("Downloading YOLOv3 weights.")
@@ -125,13 +127,14 @@ class ObjectDetector:
             box_array = np.zeros((8, 8))
             box_array[:, :2] = box
             box_arrays.append(box_array)
+            label_length = len(self.classes[class_id]) / 15.0
 
             vertices_yolo = np.array([[box_x, box_y, 0.0],
                                       [box_x, box_y - 0.1, 0.0],
-                                      [box_x + 0.5, box_y, 0.0],
-                                      [box_x + 0.5, box_y - 0.1,
+                                      [box_x + 0.5 * label_length, box_y, 0.0],
+                                      [box_x + 0.5 * label_length, box_y - 0.1,
                                        0.0],
-                                      [box_x + 0.5, box_y, 0.0],
+                                      [box_x + 0.5 * label_length, box_y, 0.0],
                                       [box_x, box_y - 0.1, 0.0]])
 
             normals = np.repeat([[0.0, 0.0, 1.0]], len(vertices_yolo), axis=0)
@@ -139,12 +142,13 @@ class ObjectDetector:
             label_height_pix = 48.96
             img_size_pix = 1024
             num_cols = 4
+
             yolo_coords = np.array(
                 [[col_num / num_cols, 1.0 - row_num * (label_height_pix / img_size_pix)],
                  [col_num / num_cols, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix],
-                 [(col_num + 1) / num_cols, 1.0 - row_num * (label_height_pix / img_size_pix)],
-                 [(col_num + 1) / num_cols, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix],
-                 [(col_num + 1) / num_cols, 1.0 - row_num * (label_height_pix / img_size_pix)],
+                 [(col_num + 1) / num_cols * label_length, 1.0 - row_num * (label_height_pix / img_size_pix)],
+                 [(col_num + 1) / num_cols * label_length, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix],
+                 [(col_num + 1) / num_cols * label_length, 1.0 - row_num * (label_height_pix / img_size_pix)],
                  [col_num / num_cols, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix]])
             label_array = np.hstack((vertices_yolo, normals, yolo_coords))
             label_arrays.append(label_array)
