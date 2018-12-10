@@ -64,7 +64,8 @@ class ObjectDetector:
         scale = 0.00392
 
         # Magic number.
-        blob = cv2.dnn.blobFromImage(image, scale, (416, 416), (0, 0, 0), True,
+        yolo_size = (416, 416)
+        blob = cv2.dnn.blobFromImage(image, scale, yolo_size, (0, 0, 0), True,
                                      crop=False)
         self.net.setInput(blob)
         outs = self.net.forward(self.yolo_output_layers)
@@ -115,8 +116,9 @@ class ObjectDetector:
             idx = index[0]
             class_id = class_ids[idx]
             box = boxes[idx]
-            num_rows = class_id % 20  # Magic number.
-            num_cols = int(class_id / 20)
+            classes_per_col = 20
+            row_num = class_id % classes_per_col
+            col_num = int(class_id / classes_per_col)
             box_x = box[0][0]
             box_y = box[0][1]
 
@@ -125,23 +127,25 @@ class ObjectDetector:
             box_arrays.append(box_array)
 
             vertices_yolo = np.array([[box_x, box_y, 0.0],
-                                      [box_x, box_y - 30.0 / 299, 0.0],
-                                      [box_x + 150.0 / 299, box_y, 0.0],
-                                      [box_x + 150.0 / 299, box_y - 30.0 / 299,
+                                      [box_x, box_y - 0.1, 0.0],
+                                      [box_x + 0.5, box_y, 0.0],
+                                      [box_x + 0.5, box_y - 0.1,
                                        0.0],
-                                      [box_x + 150.0 / 299, box_y, 0.0],
-                                      [box_x, box_y - 30.0 / 299, 0.0]])
+                                      [box_x + 0.5, box_y, 0.0],
+                                      [box_x, box_y - 0.1, 0.0]])
 
             normals = np.repeat([[0.0, 0.0, 1.0]], len(vertices_yolo), axis=0)
 
-            # Magic numbers.
+            img_label_height = 48.96
+            label_img_size = 1024
+            num_cols = 4
             yolo_coords = np.array(
-                [[0.25 * num_cols, 1.0 - num_rows * (48.96 / 1024)],
-                 [0.25 * num_cols, 1.0 - (num_rows + 1) * (48.96 / 1024) + 1.0 / 1024],
-                 [0.25 * (num_cols + 1), 1.0 - num_rows * (48.96 / 1024)],
-                 [0.25 * (num_cols + 1), 1.0 - (num_rows + 1) * (48.96 / 1024) + 1.0 / 1024],
-                 [0.25 * (num_cols + 1), 1.0 - num_rows * (48.96 / 1024)],
-                 [0.25 * num_cols, 1.0 - (num_rows + 1) * (48.96 / 1024) + 1.0 / 1024]])
+                [[col_num / num_cols, 1.0 - row_num * (img_label_height / label_img_size)],
+                 [col_num / num_cols, 1.0 - (row_num + 1) * (img_label_height / label_img_size) + 1.0 / label_img_size],
+                 [(col_num + 1) / num_cols, 1.0 - row_num * (img_label_height / label_img_size)],
+                 [(col_num + 1) / num_cols, 1.0 - (row_num + 1) * (img_label_height / label_img_size) + 1.0 / label_img_size],
+                 [(col_num + 1) / num_cols, 1.0 - row_num * (img_label_height / label_img_size)],
+                 [col_num / num_cols, 1.0 - (row_num + 1) * (img_label_height / label_img_size) + 1.0 / label_img_size]])
             label_array = np.hstack((vertices_yolo, normals, yolo_coords))
             label_arrays.append(label_array)
 
