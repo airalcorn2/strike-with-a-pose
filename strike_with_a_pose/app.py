@@ -448,7 +448,10 @@ class SceneWindow(QOpenGLWidget):
             self.fill_entry_form()
 
             self.model = MODEL()
-            self.model.set_model_gui_comps(self.model_gui_comps)
+            for (name, comp) in self.model_gui_comps.items():
+                if name != "predict":
+                    setattr(self.model, name, comp)
+
             self.model.CTX = self.scene.CTX
             self.model.PROG = self.scene.PROG
             self.model.init_scene_comps()

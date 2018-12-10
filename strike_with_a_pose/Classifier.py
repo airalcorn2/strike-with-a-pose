@@ -77,8 +77,3 @@ class Classifier(nn.Module):
 
     def clear(self):
         pass
-
-    def set_model_gui_comps(self, model_gui_comps):
-        for (name, comp) in model_gui_comps.items():
-            if name != "predict":
-                setattr(self, name, comp)

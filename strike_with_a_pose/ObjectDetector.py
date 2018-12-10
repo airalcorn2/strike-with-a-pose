@@ -186,8 +186,3 @@ class ObjectDetector:
 
         self.YOLO_LABEL_VBOS = []
         self.YOLO_LABEL_VAOS = []
-
-    def set_model_gui_comps(self, model_gui_comps):
-        for (name, comp) in model_gui_comps.items():
-            if name != "predict":
-                setattr(self, name, comp)
