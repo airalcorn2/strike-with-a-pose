@@ -1,15 +1,22 @@
 import cv2
+import moderngl
 import numpy as np
 import os
 import pkg_resources
 import urllib
 
+from PIL import Image
+
 YOLO_CLASSES = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.txt")
 YOLO_WEIGHTS = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.weights")
 YOLO_CONFIG = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.cfg")
+YOLO_CLASSES_F = "yolo_classes.png"
+SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
 
 
-class Model:
+class ObjectDetector:
+    name = "object detector"
+
     def __init__(self):
         classes = len(open(YOLO_CLASSES, "r").readlines())
         self.yolo_rgbs = np.random.uniform(0, 255, size=(classes, 3)) / 255.0
@@ -24,7 +31,19 @@ class Model:
         self.yolo_output_layers = [layer_names[i[0] - 1] for i in
                                    self.net.getUnconnectedOutLayers()]
 
-    def detect(self, image):
+        self.YOLO_BOX_VBOS = []
+        self.YOLO_BOX_VAOS = []
+        self.YOLO_LABEL_VBOS = []
+        self.YOLO_LABEL_VAOS = []
+
+    def init_scene_comps(self):
+        yolo_classes_f = "{0}{1}".format(SCENE_DIR, YOLO_CLASSES_F)
+        yolo_classes_img = Image.open(yolo_classes_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
+        self.YOLO_LABELS = self.CTX.texture(yolo_classes_img.size, 4,
+                                            yolo_classes_img.tobytes())
+        self.YOLO_LABELS.build_mipmaps()
+
+    def predict(self, image):
         boxes = []
         class_ids = []
 
@@ -122,4 +141,53 @@ class Model:
 
             box_rgbs.append(self.yolo_rgbs[class_id])
 
-        return (box_arrays, label_arrays, box_rgbs)
+        self.add_boxes_and_labels(box_arrays, label_arrays, box_rgbs)
+
+    def add_boxes_and_labels(self, box_arrays, label_arrays, box_rgbs):
+        self.BOX_RGBS = box_rgbs
+        for i in range(len(box_arrays)):
+            box_array = box_arrays[i]
+            box_vbo = self.CTX.buffer(box_array.astype("f4").tobytes())
+            box_vao = self.CTX.simple_vertex_array(self.PROG, box_vbo, "in_vert",
+                                                   "in_norm", "in_text")
+            self.YOLO_BOX_VBOS.append(box_vbo)
+            self.YOLO_BOX_VAOS.append(box_vao)
+
+            label_array = label_arrays[i]
+            label_vbo = self.CTX.buffer(label_array.flatten().astype("f4").tobytes())
+            label_vao = self.CTX.simple_vertex_array(self.PROG, label_vbo,
+                                                     "in_vert", "in_norm",
+                                                     "in_text")
+            self.YOLO_LABEL_VBOS.append(label_vbo)
+            self.YOLO_LABEL_VAOS.append(label_vao)
+
+    def render(self):
+        for i in range(len(self.YOLO_BOX_VAOS)):
+            self.CTX.disable(moderngl.DEPTH_TEST)
+            self.PROG["mode"].value = 2
+            self.PROG["box_rgb"].value = tuple(self.BOX_RGBS[i])
+            self.YOLO_BOX_VAOS[i].render(moderngl.LINES)
+
+            self.PROG["mode"].value = 1
+            self.YOLO_LABELS.use()
+            self.YOLO_LABEL_VAOS[i].render()
+            self.CTX.enable(moderngl.DEPTH_TEST)
+            self.PROG["mode"].value = 0
+
+    def clear(self):
+        for i in range(len(self.YOLO_BOX_VAOS)):
+            self.YOLO_BOX_VBOS[i].release()
+            self.YOLO_BOX_VAOS[i].release()
+            self.YOLO_LABEL_VBOS[i].release()
+            self.YOLO_LABEL_VAOS[i].release()
+
+        self.YOLO_BOX_VBOS = []
+        self.YOLO_BOX_VAOS = []
+
+        self.YOLO_LABEL_VBOS = []
+        self.YOLO_LABEL_VAOS = []
+
+    def set_model_gui_comps(self, model_gui_comps):
+        for (name, comp) in model_gui_comps.items():
+            if name != "predict":
+                setattr(self, name, comp)

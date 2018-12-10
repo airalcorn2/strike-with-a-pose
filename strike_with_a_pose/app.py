@@ -449,7 +449,9 @@ class SceneWindow(QOpenGLWidget):
 
             self.model = MODEL()
             self.model.set_model_gui_comps(self.model_gui_comps)
-            self.model.scene = self.scene
+            self.model.CTX = self.scene.CTX
+            self.model.PROG = self.scene.PROG
+            self.model.init_scene_comps()
             self.scene.MODEL = self.model
 
             self.scene.render()

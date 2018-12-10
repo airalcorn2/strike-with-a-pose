@@ -45,6 +45,9 @@ class Classifier(nn.Module):
         input_f.close()
         return label_map
 
+    def init_scene_comps(self):
+        pass
+
     def forward(self, input_image):
         image_normalized = self.preprocess(input_image)
 
