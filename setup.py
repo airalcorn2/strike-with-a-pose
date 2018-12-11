@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name="strike_with_a_pose",
-      version="0.1.0",
+      version="0.2.0",
       url="http://github.com/airalcorn2/strike-with-a-pose",
       author="Michael A. Alcorn",
       author_email="alcorma@auburn.edu",
@@ -10,6 +10,7 @@ setup(name="strike_with_a_pose",
           "moderngl>=5.4.2",
           "numpy>=1.15.4",
           "objloader>=0.2.0",
+          "opencv-python>=3.4.3",
           "Pillow>=5.3.0",
           "PyOpenGL>=3.1.0",
           "PyOpenGL_accelerate>=3.1.0",
@@ -21,9 +22,11 @@ setup(name="strike_with_a_pose",
       ],
       package_data={
           "strike_with_a_pose": [
-              "instructions.html",
               "imagenet_classes.txt",
-              "scene_files/*"
+              "instructions.html",
+              "scene_files/*",
+              "yolov3.cfg",
+              "yolov3.txt"
           ]
       },
       scripts=["run/strike-with-a-pose"],

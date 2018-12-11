@@ -1,10 +1,6 @@
 import moderngl
 import numpy as np
 import pkg_resources
-import torch
-import torch.nn as nn
-import torchvision.models as models
-import torchvision.transforms as transforms
 
 from objloader import Obj
 from PIL import Image, ImageOps
@@ -13,10 +9,6 @@ from strike_with_a_pose.settings import *
 
 # Package resources.
 SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
-IMAGENET_F = pkg_resources.resource_filename("strike_with_a_pose", "imagenet_classes.txt")
-
-# PyTorch stuff.
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Average ImageNet pixel.
 (R, G, B) = (0.485, 0.456, 0.406)
@@ -29,51 +21,11 @@ TARGET = np.zeros(3)
 UP = np.array([0.0, 1.0, 0.0])
 LOOK_AT = Matrix44.look_at(EYE, TARGET, UP)
 
-(WIDTH, HEIGHT) = (299, 299) if USE_INCEPTION else (224, 224)
+(WIDTH, HEIGHT) = (299, 299)
 RATIO = float(WIDTH) / float(HEIGHT)
 VIEWING_ANGLE = 8.213
 ANGLE = 2 * 8.213
 perspective = Matrix44.perspective_projection(ANGLE, RATIO, 0.1, 1000.0)
-
-
-def load_imagenet_label_map():
-    """Map ImageNet integer indexes to labels.
-
-    :return:
-    """
-    input_f = open(IMAGENET_F)
-    label_map = {}
-    for line in input_f:
-        parts = line.strip().split(": ")
-        (num, label) = (int(parts[0]), parts[1].replace("\"", ""))
-        label_map[num] = label
-
-    input_f.close()
-    return label_map
-
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        if USE_INCEPTION:
-            self.net = models.inception_v3(pretrained=True)
-        else:
-            self.net = models.alexnet(pretrained=True)
-
-        self.net.eval()
-        for param in self.net.parameters():
-            param.requires_grad = False
-
-        # Set up preprocessor.
-        self.preprocess = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                               std=[0.229, 0.224, 0.225])
-
-    def forward(self, input_image):
-        image_normalized = self.preprocess(input_image)
-
-        # Generate predictions.
-        out = self.net(image_normalized[None, :, :, :])
-        return out
 
 
 class Scene:
@@ -81,10 +33,7 @@ class Scene:
     wnd = None
 
     def __init__(self):
-        self.MODEL = Model().to(DEVICE)
-        self.LABEL_MAP = load_imagenet_label_map()
         self.CTX = moderngl.create_context()
-
         self.PROG = self.CTX.program(
             vertex_shader="""
                 #version 330
@@ -127,6 +76,7 @@ class Scene:
                 uniform sampler2D Texture;
                 uniform int mode;
                 uniform bool use_texture;
+                uniform vec3 box_rgb;
 
                 in vec3 v_norm;
                 in vec2 v_text;
@@ -145,7 +95,7 @@ class Scene:
                     } else if (mode == 1) {
                         f_color = vec4(texture(Texture, v_text).rgba);
                     } else {
-                        f_color = vec4(1.0, 0.0, 0.0, 1.0);
+                        f_color = vec4(box_rgb, 1.0);
                     }
                 }
             """
@@ -218,10 +168,6 @@ class Scene:
                                                                "in_vert", "in_norm",
                                                                "in_text")
 
-        # Set up object.
-        self.TRUE_CLASS = int(open("{0}{1}".format(SCENE_DIR, CLASS_F)).read())
-        self.TRUE_LABEL = self.LABEL_MAP[self.TRUE_CLASS]
-
         # Load textures.
         TEXTURES = []
         for TEXTURE_F in TEXTURE_FS:
@@ -290,37 +236,7 @@ class Scene:
 
             VAO.render()
 
-        draw_boxes = False
-        if draw_boxes:
-            # Every two rows define a line.
-            box_1 = np.array([[-0.5, -0.5],
-                              [-0.5, 0.5],
-                              [-0.5, -0.5],
-                              [0.5, -0.5],
-                              [-0.5, 0.5],
-                              [0.5, 0.5],
-                              [0.5, -0.5],
-                              [0.5, 0.5]])
-            box_2 = np.array([[-0.25, -0.25],
-                              [-0.25, 0.25],
-                              [-0.25, -0.25],
-                              [0.25, -0.25],
-                              [-0.25, 0.25],
-                              [0.25, 0.25],
-                              [0.25, -0.25],
-                              [0.25, 0.25]])
-            self.boxes = [box_1, box_2]
-            for box in self.boxes:
-                full_array = np.zeros((8, 8))
-                full_array[:, :2] = box
-                box_vbo = self.CTX.buffer(full_array.astype("f4").tobytes())
-                box_vao = self.CTX.simple_vertex_array(self.PROG, box_vbo, "in_vert",
-                                                       "in_norm", "in_text")
-                self.CTX.disable(moderngl.DEPTH_TEST)
-                self.PROG["mode"].value = 2
-                box_vao.render(moderngl.LINES)
-                self.CTX.enable(moderngl.DEPTH_TEST)
-                self.PROG["mode"].value = 0
+        self.MODEL.render()
 
     def pan(self, deltas):
         self.PROG["Pan"].value = deltas
@@ -379,7 +295,6 @@ class Scene:
         return(yaw, pitch, roll)
 
     def rotate(self, angles):
-        # Update rotation matrix.
         R_yaw = self.gen_rotation_matrix_from_angle_axis(angles[0], self.R[:, 1])
         R_pitch = self.gen_rotation_matrix_from_angle_axis(angles[1], self.R[:, 0])
         R_roll = self.gen_rotation_matrix_from_angle_axis(angles[2], self.R[:, 2])
@@ -396,19 +311,6 @@ class Scene:
         (yaw, pitch, roll) = self.get_angles_from_matrix(L)
         self.L = self.gen_rotation_matrix(yaw, pitch, roll).T
         self.PROG["L"].write(self.L.astype("f4").tobytes())
-
-    def predict(self, image):
-        with torch.no_grad():
-            image_tensor = torch.Tensor(np.array(image) / 255.0).to(DEVICE)
-            input_image = image_tensor.permute(2, 0, 1)
-            out = self.MODEL(input_image)
-            probs = torch.nn.functional.softmax(out, dim=1)
-            probs_np = probs[0].detach().cpu().numpy()
-            top_label = self.LABEL_MAP[probs_np.argmax()]
-            top_prob = probs_np.max()
-            true_label = self.TRUE_LABEL
-            true_prob = probs_np[self.TRUE_CLASS]
-            return (top_label, top_prob, true_label, true_prob)
 
     def get_params(self):
         (x, y) = self.PROG["Pan"].value

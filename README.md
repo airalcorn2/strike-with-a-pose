@@ -4,13 +4,13 @@
 <img src="strike-with-a-pose.gif", width="700">
 </p>
 
-This is the companion application to the paper:
+This is the companion tool to the paper:
 
 > [Michael A. Alcorn](https://sites.google.com/view/michaelaalcorn), Qi Li, Zhitao Gong, Chengfei Wang, Long Mai, Wei-Shinn Ku, and [Anh Nguyen](http://anhnguyen.me). [Strike (with) a pose: Neural networks are easily fooled by strange poses of familiar objects](https://arxiv.org/abs/1811.11553). arXiv 1811.11553. 2018.
 
- The application allows you to generate adversarial poses of objects with a graphical user interface. Please note that the included jeep object (freely available [here](https://free3d.com/3d-model/jeep-10771.html)) does not meet the realism standards set in the paper. Unfortunately, the school bus object shown in the GIF is proprietary and cannot be distributed with the application. A web port of the application (created by [Zhitao Gong](https://github.com/gongzhitaao)) can be found [here](https://airalcorn2.github.io/strike-with-a-pose/).
+ The tool allows you to generate adversarial poses of objects with a graphical user interface. Please note that the included jeep object (freely available [here](https://free3d.com/3d-model/jeep-10771.html)) does not meet the realism standards set in the paper. Unfortunately, the school bus object shown in the GIF is proprietary and cannot be distributed with the tool. A web port of the tool (created by [Zhitao Gong](https://github.com/gongzhitaao)) can be found [here](https://airalcorn2.github.io/strike-with-a-pose/).
 
- If you use this application for your own research, please cite:
+ If you use this tool for your own research, please cite:
 
 ```
 @article{alcorn-2018-strike-with-a-pose,
@@ -44,7 +44,7 @@ This is the companion application to the paper:
 
 ## Install/Run
 
-Note: the application takes a little while to start the first time it's run because it has to download the neural network.
+Note: the tool takes a little while to start the first time it's run because it has to download the neural network.
 
 ### Linux
 
@@ -61,7 +61,7 @@ pip3 install .
 strike-with-a-pose
 ```
 
-You can also run the application (after installing) by starting Python and entering the following:
+You can also run the tool (after installing) by starting Python and entering the following:
 
 ```python
 from strike_with_a_pose import app
@@ -70,7 +70,7 @@ app.run_gui()
 
 ### Mac
 
-1. Click [here](https://github.com/airalcorn2/strike-with-a-pose/archive/master.zip) to download the application ZIP.
+1. Click [here](https://github.com/airalcorn2/strike-with-a-pose/archive/master.zip) to download the tool ZIP.
 2. Extract the ZIP somewhere convenient (like your desktop).
 3. Double-click `install.command` in the `strike-with-a-pose-master/` directory.
   * Note: you may have to [adjust your security settings](https://www.mcvsd.org/tips/powerteacher/osx_unidentified_developers.html) to allow applications from "unidentified developers".
@@ -78,7 +78,7 @@ app.run_gui()
 
 ### Windows
 
-1. Click [here](https://github.com/airalcorn2/strike-with-a-pose/archive/master.zip) to download the application ZIP.
+1. Click [here](https://github.com/airalcorn2/strike-with-a-pose/archive/master.zip) to download the tool ZIP.
 2. Extract the ZIP somewhere convenient (like your desktop).
 3. Double-click `install.bat` in the `strike-with-a-pose-master\` directory.
  * Note: you may need to click "More info" and then "Run anyway".
@@ -86,11 +86,33 @@ app.run_gui()
 
 ## For Experts
 
-Users can test their own objects and backgrounds in `strike-with-a-pose` by ***(1)*** modifying [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py), ***(2)*** adding the associated files to the `scene_files/` directory, and ***(3)*** running the following inside the `strike-with-a-pose/` directory:
+### Using Different Objects and Backgrounds
+
+Users can test their own objects and backgrounds in `strike-with-a-pose` by:
+1. Adding the appropriate files to the `scene_files/` directory.
+2. Modifying the `BACKGROUND_F`, `TEXTURE_FS`, and `OBJ_FS` variables in  [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
+3. Running the following command inside the `strike-with-a-pose/` directory:
 
 ```bash
 PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 ```
+
+### Using Different Machine Learning Models
+
+![](detector_example.png)
+
+As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples, users can experiment with different machine learning models in `strike-with-a-pose` by:
+1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (for examples, see [`Classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/Classifier.py) and [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py) [with major contributions from [Qi Li](https://www.linkedin.com/in/qili/)]).
+2. Setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
+3. Running the following command inside the `strike-with-a-pose/` directory:
+
+```bash
+PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
+```
+
+
+
+### Additional Modes
 
 Pressing **L** will toggle **Live** mode. When on, the neural network will continuously generate predictions. Note, **Live** mode can cause considerable lag if you do not have each of ***(1)*** a powerful GPU, ***(2)*** [CUDA](https://developer.nvidia.com/cuda-90-download-archive) installed, and ***(3)*** a [PyTorch version with CUDA](https://pytorch.org/get-started/locally/) support installed.
 

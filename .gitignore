@@ -4,3 +4,4 @@ strike_with_a_pose/__pycache__/
 build/
 node_modules/
 package-lock.json
+strike_with_a_pose/yolov3.weights
