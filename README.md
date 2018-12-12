@@ -108,24 +108,31 @@ As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1
 ```bash
 PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 ```
-##### Object Detector #####
+#### Object Detector ####
 
 ![](detector_example.png)
 
-##### Image Captioner #####
-s
+#### Image Captioner ####
+
 ![](image_caption_example.png)
 
 The users can use an image captioning model to experiment how the pose of objects affect the predictions in Strike (With) A Pose by:
 1. Download and Install COCO API
+
 '''
 git clone https://github.com/pdollar/coco.git
 cd coco/PythonAPI/
 make
-python setup.py build
-python setup.py install
+python3 setup.py build
+python3 setup.py install
 '''
-2. Setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
+
+2. Setting the `MODEL_TYPE` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) as `image_captioner`.
+
+'''
+MODEL_TYPE = "image_captioner"
+'''
+
 3. Running the following command inside the `strike-with-a-pose/` directory:
 
 ```bash
