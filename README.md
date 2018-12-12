@@ -99,7 +99,6 @@ PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 
 ### Using Different Machine Learning Models
 
-![](detector_example.png)
 
 As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples, users can experiment with different machine learning models in Strike (With) A Pose by:
 1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`Classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/Classifier.py) and [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py) [with major contributions from [Qi Li](https://www.linkedin.com/in/qili/)]).
@@ -109,6 +108,12 @@ As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1
 ```bash
 PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 ```
+##### Object Detector #####
+
+![](detector_example.png)
+
+##### Image Captioner #####
+s
 ![](image_caption_example.png)
 
 The users can use an image captioning model to experiment how the pose of objects affect the predictions in Strike (With) A Pose by:
