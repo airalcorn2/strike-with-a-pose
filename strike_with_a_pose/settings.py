@@ -8,10 +8,10 @@ MODEL = MODELS[MODEL_TYPE]
 
 BACKGROUND_F = "background_{0}.jpg".format(MODEL_TYPE)
 
-TEXTURE_FS = ["interior.tga", "exterior.tga", "glass.tga"]
-
 # Order matters.
-OBJ_FS = ["interior.obj", "exterior.obj", "glass.obj"]
+OBJ_AND_TEXTURE_FS = [("interior.obj", "interior.tga"),
+                      ("exterior.obj", "exterior.tga"),
+                      ("glass.obj", "glass.tga")]
 
 INITIAL_PARAMS = {
     "x_delta": -0.3865,

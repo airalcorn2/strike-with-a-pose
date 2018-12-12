@@ -168,21 +168,11 @@ class Scene:
                                                                "in_vert", "in_norm",
                                                                "in_text")
 
-        # Load textures.
-        TEXTURES = []
-        for TEXTURE_F in TEXTURE_FS:
-            texture_f = SCENE_DIR + "{1}".format(SCENE_DIR, TEXTURE_F)
-            texture_img = Image.open(texture_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
-            TEXTURE = self.CTX.texture(texture_img.size, 4, texture_img.tobytes())
-            TEXTURE.build_mipmaps()
-            TEXTURES.append(TEXTURE)
-
-        self.TEXTURES = TEXTURES
-
-        # Load vertices.
+        # Load vertices and textures.
         VAOS = []
+        TEXTURES = []
         (min_val, abs_max_val, max_val) = (None, None, None)
-        for OBJ_F in OBJ_FS:
+        for (OBJ_F, TEXTURE_F) in OBJ_AND_TEXTURE_FS:
             input_obj = SCENE_DIR + OBJ_F
             obj = Obj.open(input_obj)
             packed_array = obj.to_array()[:, :-1]
@@ -212,7 +202,14 @@ class Scene:
                                                "in_norm", "in_text")
             VAOS.append(vao)
 
+            texture_f = SCENE_DIR + "{1}".format(SCENE_DIR, TEXTURE_F)
+            texture_img = Image.open(texture_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
+            TEXTURE = self.CTX.texture(texture_img.size, 4, texture_img.tobytes())
+            TEXTURE.build_mipmaps()
+            TEXTURES.append(TEXTURE)
+
         self.VAOS = VAOS
+        self.TEXTURES = TEXTURES
 
     def render(self):
         self.CTX.viewport = self.wnd.viewport

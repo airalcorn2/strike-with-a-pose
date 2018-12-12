@@ -88,7 +88,7 @@ app.run_gui()
 
 ### Using Different Objects and Backgrounds
 
-Users can test their own objects and backgrounds in `strike-with-a-pose` by:
+Users can test their own objects and backgrounds in Strike (With) A Pose by:
 1. Adding the appropriate files to the `scene_files/` directory.
 2. Modifying the `BACKGROUND_F`, `TEXTURE_FS`, and `OBJ_FS` variables in  [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
 3. Running the following command inside the `strike-with-a-pose/` directory:
@@ -101,7 +101,7 @@ PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 
 ![](detector_example.png)
 
-As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples, users can experiment with different machine learning models in `strike-with-a-pose` by:
+As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples, users can experiment with different machine learning models in Strike (With) A Pose by:
 1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`Classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/Classifier.py) and [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py) [with major contributions from [Qi Li](https://www.linkedin.com/in/qili/)]).
 2. Setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
 3. Running the following command inside the `strike-with-a-pose/` directory:
