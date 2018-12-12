@@ -14,11 +14,8 @@ from PyQt5.QtWidgets import QMessageBox, QOpenGLWidget, QPushButton, QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 from strike_with_a_pose.scene import Scene
 from strike_with_a_pose.settings import INITIAL_PARAMS, MODEL
-<<<<<<< HEAD
 
 from build_vocab import Vocabulary
-=======
->>>>>>> upstream/master
 
 INSTRUCTIONS_F = pkg_resources.resource_filename("strike_with_a_pose",  "instructions.html")
 

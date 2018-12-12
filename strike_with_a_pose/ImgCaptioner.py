@@ -21,7 +21,7 @@ DECODER_PATH = pkg_resources.resource_filename("strike_with_a_pose", "models/dec
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-class ImgCaptioning:
+class ImgCaptioner:
     def __init__(self):
 
         # we use the pre-trained the models from
@@ -58,9 +58,9 @@ class ImgCaptioning:
         img_caption.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
 
         # Predict button.
-        img_caption_b = QPushButton("Caption")
+        predict = QPushButton("Captioning")
         # Order matters. Prediction button must be named "predict" in tuple.
-        return [("img_caption", img_caption), ("predict", img_caption_b)]
+        return [("img_caption", img_caption), ("predict", predict)]
 
     def init_scene_comps(self):
         pass
@@ -97,7 +97,7 @@ class ImgCaptioning:
                     break
             sentence = ' '.join(sampled_caption)
 
-            self.pred_text.setText("<strong>ImageCaption</strong>:<br>"
+            self.img_caption.setText("<strong>ImageCaption</strong>:<br>"
                                    "<strong></strong>{0}<br><br>".format(sentence))
 
     def render(self):
