@@ -90,7 +90,7 @@ app.run_gui()
 
 Users can test their own objects and backgrounds in Strike (With) A Pose by:
 1. Adding the appropriate files to the `scene_files/` directory.
-2. Modifying the `BACKGROUND_F`, `TEXTURE_FS`, and `OBJ_FS` variables in  [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
+2. Modifying the `BACKGROUND_F` and `OBJ_AND_TEXTURE_FS` variables in  [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
 3. Running the following command inside the `strike-with-a-pose/` directory:
 
 ```bash
