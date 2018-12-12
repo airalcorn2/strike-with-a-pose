@@ -22,11 +22,9 @@ setup(name="strike_with_a_pose",
       ],
       package_data={
           "strike_with_a_pose": [
-              "imagenet_classes.txt",
-              "instructions.html",
+              "data/*",
               "scene_files/*",
-              "yolov3.cfg",
-              "yolov3.txt"
+              "instructions.html"
           ]
       },
       scripts=["run/strike-with-a-pose"],

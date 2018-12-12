@@ -15,8 +15,6 @@ from PyQt5.QtWidgets import QWidget
 from strike_with_a_pose.scene import Scene
 from strike_with_a_pose.settings import INITIAL_PARAMS, MODEL
 
-from build_vocab import Vocabulary
-
 INSTRUCTIONS_F = pkg_resources.resource_filename("strike_with_a_pose",  "instructions.html")
 
 fmt = QSurfaceFormat()

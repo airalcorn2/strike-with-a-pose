@@ -99,25 +99,16 @@ PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 
 ### Using Different Machine Learning Models
 
-
-As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples, users can experiment with different machine learning models in Strike (With) A Pose by:
-1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`Classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/Classifier.py) and [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py) [with major contributions from [Qi Li](https://www.linkedin.com/in/qili/)]).
+Users can experiment with different machine learning models in Strike (With) A Pose by:
+1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`ImageClassifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ImageClassifier.py), [`ImageDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ImageDetector.py), and [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py) [with major contributions by [Qi Li](https://www.linkedin.com/in/qili/)]).
 2. Setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
 3. Running the following command inside the `strike-with-a-pose/` directory:
 
 ```bash
 PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 ```
-#### Object Detector ####
 
-![](detector_example.png)
-
-#### Image Captioner ####
-
-![](image_caption_example.png)
-
-The users can use an image captioning model to experiment how the pose of objects affect the predictions in Strike (With) A Pose by:
-1. Download and Install COCO API
+To use the image captioner model, first download and install the COCO API:
 
 ```python
 git clone https://github.com/pdollar/coco.git
@@ -127,17 +118,15 @@ python3 setup.py build
 python3 setup.py install
 ```
 
-2. Setting the `MODEL_TYPE` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) as `image_captioner`.
+#### Object Detector
 
-```python
-MODEL_TYPE = "image_captioner"
-```
+"[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples:
 
-3. Running the following command inside the `strike-with-a-pose/` directory:
+![](detector_example.png)
 
-```bash
-PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
-```
+#### Image Captioner
+
+![](image_caption_example.png)
 
 ### Additional Modes
 
