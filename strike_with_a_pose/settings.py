@@ -1,6 +1,6 @@
 from strike_with_a_pose.ImageClassifier import ImageClassifier
-from strike_with_a_pose.ImageCaptioner import ImageCaptioner
 from strike_with_a_pose.ObjectDetector import ObjectDetector
+from strike_with_a_pose.ImageCaptioner import ImageCaptioner
 
 MODELS = {"classifier": ImageClassifier, "detector": ObjectDetector,
           "captioner": ImageCaptioner}
@@ -50,7 +50,7 @@ MODEL_INITIAL_PARAMS = {
     }
 }
 
-MODEL_TYPE = "captioner"
+MODEL_TYPE = "classifier"
 MODEL = MODELS[MODEL_TYPE]
 BACKGROUND_F = "background_{0}.jpg".format(MODEL_TYPE)
 OBJ_AND_TEXTURE_FS = MODEL_OBJ_AND_TEXTURE_FS[MODEL_TYPE]
