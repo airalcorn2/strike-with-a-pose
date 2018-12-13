@@ -118,6 +118,10 @@ python3 setup.py build
 python3 setup.py install
 ```
 
+#### Image Classifier
+
+![](image_classification_example.png)
+
 #### Object Detector
 
 "[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples:

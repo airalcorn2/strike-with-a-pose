@@ -16,12 +16,12 @@ MODEL_OBJ_AND_TEXTURE_FS = {
 }
 MODEL_INITIAL_PARAMS = {
     "classifier": {
-        "x_delta": -0.3865,
-        "y_delta": 0.6952,
+        "x_delta": -0.3005,
+        "y_delta": -0.2227,
         "z_delta": -9.6000,
-        "yaw": -138.0867,
-        "pitch": -3.8813,
-        "roll": -2.8028,
+        "yaw": 178.5066,
+        "pitch": -4.6715,
+        "roll": 12.8242,
         "amb_int": 0.7000,
         "dir_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
