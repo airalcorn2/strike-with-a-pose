@@ -169,7 +169,6 @@ class Scene:
                                                                "in_text")
 
         # Load vertices and textures.
-
         VAOS = []
         TEXTURES = []
         (min_val, abs_max_val, max_val) = (None, None, None)
