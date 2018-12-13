@@ -117,6 +117,10 @@ make
 python3 setup.py build
 python3 setup.py install
 ```
+#### Image Captioner
+
+![](image_classification_example.png)
+
 
 #### Object Detector
 
