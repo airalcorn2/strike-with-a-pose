@@ -24,7 +24,8 @@ MODEL_INITIAL_PARAMS = {
         "roll": -2.8028,
         "amb_int": 0.7000,
         "dir_int": 0.7000,
-        "DirLight": (0.0000, 1.0000, 0.000)
+        "DirLight": (0.0000, 1.0000, 0.000),
+        "USE_BACKGROUND": False
     },
     "detector": {
         "x_delta": -0.4260,
@@ -35,7 +36,8 @@ MODEL_INITIAL_PARAMS = {
         "roll": -1.2106,
         "amb_int": 0.7000,
         "dir_int": 0.7000,
-        "DirLight": (0.0000, 1.0000, 0.000)
+        "DirLight": (0.0000, 1.0000, 0.000),
+        "USE_BACKGROUND": True
     },
     "captioner": {
         "x_delta": -0.2401,
@@ -46,11 +48,12 @@ MODEL_INITIAL_PARAMS = {
         "roll": 7.3828,
         "amb_int": 0.7000,
         "dir_int": 0.7000,
-        "DirLight": (0.0000, 1.0000, 0.000)
+        "DirLight": (0.0000, 1.0000, 0.000),
+        "USE_BACKGROUND": True
     }
 }
 
-MODEL_TYPE = "captioner"
+MODEL_TYPE = "classifier"
 MODEL = MODELS[MODEL_TYPE]
 BACKGROUND_F = "background_{0}.jpg".format(MODEL_TYPE)
 OBJ_AND_TEXTURE_FS = MODEL_OBJ_AND_TEXTURE_FS[MODEL_TYPE]

@@ -446,6 +446,7 @@ class SceneWindow(QOpenGLWidget):
             self.wheel_tool.total_z = INITIAL_PARAMS["z_delta"]
             self.scene.set_params(INITIAL_PARAMS)
             self.fill_entry_form()
+            self.scene.USE_BACKGROUND = INITIAL_PARAMS["USE_BACKGROUND"]
 
             self.model = MODEL()
             for (name, comp) in self.model_gui_comps.items():

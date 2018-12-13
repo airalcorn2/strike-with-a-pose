@@ -20,7 +20,6 @@ HIDDEN_SIZE = 512
 NUM_LSTM_LAYER = 1
 ENCODER_PATH = pkg_resources.resource_filename("strike_with_a_pose", "data/encoder-5-3000.pkl")
 DECODER_PATH = pkg_resources.resource_filename("strike_with_a_pose", "data/decoder-5-3000.pkl")
-
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -116,10 +115,10 @@ class ImageCaptioner:
         img_caption.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
         img_caption.setWordWrap(True)
 
-        # Predict button.
-        predict = QPushButton("Caption")
+        # Caption button.
+        caption = QPushButton("Caption")
         # Order matters. Prediction button must be named "predict" in tuple.
-        return [("img_caption", img_caption), ("predict", predict)]
+        return [("img_caption", img_caption), ("predict", caption)]
 
     def init_scene_comps(self):
         pass

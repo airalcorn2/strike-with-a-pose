@@ -54,10 +54,11 @@ class ImageClassifier(nn.Module):
                            "<strong>True Label</strong>: <br>"
                            "<strong>True Probability</strong>: ")
         pred_text.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
-        # Predict button.
-        predict = QPushButton("Predict")
+
+        # Classify button.
+        classify = QPushButton("Classify")
         # Order matters. Prediction button must be named "predict" in tuple.
-        return [("pred_text", pred_text), ("predict", predict)]
+        return [("pred_text", pred_text), ("predict", classify)]
 
     def init_scene_comps(self):
         pass
@@ -82,7 +83,7 @@ class ImageClassifier(nn.Module):
             self.pred_text.setText("<strong>Top Label</strong>: {0}<br>"
                                    "<strong>Top Label Probability</strong>: {1:.4f}<br><br>"
                                    "<strong>True Label</strong>: {2}<br>"
-                                   "<strong>True Label Probability</strong>: {3:.4f}<br>".format(top_label, top_prob, true_label, true_prob))
+                                   "<strong>True Label Probability</strong>: {3:.4f}".format(top_label, top_prob, true_label, true_prob))
 
     def render(self):
         pass
