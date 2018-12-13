@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QLabel, QPushButton
 import pickle
 import os
 from torchvision import transforms
-from build_vocab import Vocabulary
 from PIL import Image
 import urllib
 import torch
