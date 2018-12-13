@@ -27,30 +27,30 @@ MODEL_INITIAL_PARAMS = {
         "DirLight": (0.0000, 1.0000, 0.000)
     },
     "detector": {
-        "x_delta": -0.3865,
-        "y_delta": 0.6952,
-        "z_delta": -9.6000,
-        "yaw": -138.0867,
-        "pitch": -3.8813,
-        "roll": -2.8028,
+        "x_delta": -0.4260,
+        "y_delta": -0.1446,
+        "z_delta": -12.9783,
+        "yaw": -159.4024,
+        "pitch": -3.9317,
+        "roll": -1.2106,
         "amb_int": 0.7000,
         "dir_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000)
     },
     "captioner": {
-        "x_delta": -0.3865,
-        "y_delta": 0.6952,
-        "z_delta": -9.6000,
-        "yaw": -138.0867,
-        "pitch": -3.8813,
-        "roll": -2.8028,
+        "x_delta": -0.2401,
+        "y_delta": 0.4551,
+        "z_delta": -12.7916,
+        "yaw": 100.6933,
+        "pitch": -7.4264,
+        "roll": 7.3828,
         "amb_int": 0.7000,
         "dir_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000)
     }
 }
 
-MODEL_TYPE = "classifier"
+MODEL_TYPE = "captioner"
 MODEL = MODELS[MODEL_TYPE]
 BACKGROUND_F = "background_{0}.jpg".format(MODEL_TYPE)
 OBJ_AND_TEXTURE_FS = MODEL_OBJ_AND_TEXTURE_FS[MODEL_TYPE]
