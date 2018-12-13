@@ -1,7 +1,13 @@
+.DS_Store
+.gitattributes
 .idea
 strike-with-a-pose.mkv
 strike_with_a_pose/__pycache__/
 build/
 node_modules/
 package-lock.json
-strike_with_a_pose/yolov3.weights
+strike_with_a_pose/.DS_Store
+strike_with_a_pose/data/yolov3.weights
+strike_with_a_pose/data/decoder-5-3000.pkl
+strike_with_a_pose/data/encoder-5-3000.pkl
+strike_with_a_pose/scene_files/.DS_Store

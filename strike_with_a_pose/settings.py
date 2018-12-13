@@ -1,15 +1,18 @@
-from strike_with_a_pose.Classifier import Classifier
+from strike_with_a_pose.ImageClassifier import ImageClassifier
 from strike_with_a_pose.ObjectDetector import ObjectDetector
+from strike_with_a_pose.ImageCaptioner import ImageCaptioner
 
-MODELS = {"classifier": Classifier, "object_detector": ObjectDetector}
+MODELS = {"classifier": ImageClassifier, "detector": ObjectDetector,
+          "captioner": ImageCaptioner}
 # Order matters.
 MODEL_OBJ_AND_TEXTURE_FS = {
     "classifier": [("interior.obj", "interior.tga"),
                    ("exterior.obj", "exterior.tga"),
                    ("glass.obj", "glass.tga")],
-    "object_detector": [("interior.obj", "interior.tga"),
-                        ("exterior.obj", "exterior.tga"),
-                        ("glass.obj", "glass.tga")]
+    "detector": [("interior.obj", "interior.tga"),
+                 ("exterior.obj", "exterior.tga"),
+                 ("glass.obj", "glass.tga")],
+    "captioner": [("bird.obj", "bird.tga")]
 }
 MODEL_INITIAL_PARAMS = {
     "classifier": {
@@ -21,18 +24,32 @@ MODEL_INITIAL_PARAMS = {
         "roll": -2.8028,
         "amb_int": 0.7000,
         "dir_int": 0.7000,
-        "DirLight": (0.0000, 1.0000, 0.000)
+        "DirLight": (0.0000, 1.0000, 0.000),
+        "USE_BACKGROUND": False
     },
-    "object_detector": {
-        "x_delta": -0.3865,
-        "y_delta": 0.6952,
-        "z_delta": -9.6000,
-        "yaw": -138.0867,
-        "pitch": -3.8813,
-        "roll": -2.8028,
+    "detector": {
+        "x_delta": -0.4260,
+        "y_delta": -0.1446,
+        "z_delta": -12.9783,
+        "yaw": -159.4024,
+        "pitch": -3.9317,
+        "roll": -1.2106,
         "amb_int": 0.7000,
         "dir_int": 0.7000,
-        "DirLight": (0.0000, 1.0000, 0.000)
+        "DirLight": (0.0000, 1.0000, 0.000),
+        "USE_BACKGROUND": True
+    },
+    "captioner": {
+        "x_delta": -0.2401,
+        "y_delta": 0.4551,
+        "z_delta": -12.7916,
+        "yaw": 100.6933,
+        "pitch": -7.4264,
+        "roll": 7.3828,
+        "amb_int": 0.7000,
+        "dir_int": 0.7000,
+        "DirLight": (0.0000, 1.0000, 0.000),
+        "USE_BACKGROUND": True
     }
 }
 

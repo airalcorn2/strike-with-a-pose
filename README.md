@@ -99,10 +99,8 @@ PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 
 ### Using Different Machine Learning Models
 
-![](detector_example.png)
-
-As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples, users can experiment with different machine learning models in Strike (With) A Pose by:
-1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`Classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/Classifier.py) and [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py) [with major contributions from [Qi Li](https://www.linkedin.com/in/qili/)]).
+Users can experiment with different machine learning models in Strike (With) A Pose by:
+1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`ImageClassifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ImageClassifier.py), [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py), and  [`ImageCaptioner.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ImageCaptioner.py) [with major contributions by [Qi Li](https://www.linkedin.com/in/qili/)]).
 2. Setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
 3. Running the following command inside the `strike-with-a-pose/` directory:
 
@@ -110,26 +108,28 @@ As demonstrated in the above "[The Elephant in the Room](https://arxiv.org/abs/1
 PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 ```
 
+To use the image captioner model, first download and install the COCO API:
+
+```python
+git clone https://github.com/pdollar/coco.git
+cd coco/PythonAPI/
+make
+python3 setup.py build
+python3 setup.py install
+```
+
+#### Object Detector
+
+"[The Elephant in the Room](https://arxiv.org/abs/1808.03305)"-like (Rosenfeld et al., 2018) examples:
+
+![](detector_example.png)
+
+#### Image Captioner
+
+![](image_caption_example.png)
+
 ### Additional Modes
 
 Pressing **L** will toggle **Live** mode. When on, the neural network will continuously generate predictions. Note, **Live** mode can cause considerable lag if you do not have each of ***(1)*** a powerful GPU, ***(2)*** [CUDA](https://developer.nvidia.com/cuda-90-download-archive) installed, and ***(3)*** a [PyTorch version with CUDA](https://pytorch.org/get-started/locally/) support installed.
 
-Pressing **X** will toggle the object's **teXture**. This is useful for making sure the directional light is properly interacting with your object. If the light looks funny, swapping/negating the vertex normal coordinates can usually fix it. See the script below for an example.
-
-```python
-input_f = "frame.obj"
-output_f = "frame_new.obj"
-
-lines = open(input_f).read().strip().split("\n")
-out = open(output_f, "w")
-for line in lines:
-    if line[:2] == "vn":
-        parts = line.split()
-        # Play around with this line.
-        (parts[2], parts[3]) = (parts[3], str(-float(parts[2])))
-        line = " ".join(parts)
-
-    print(line, file=out)
-
-out.close()
-```
+Pressing **X** will toggle the object's **teXture**. This is useful for making sure the directional light is properly interacting with your object. If the light looks funny, swapping/negating the vertex normal coordinates can usually fix it. See the [`fix_normals.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/utils/fix_normals.py) script for an example.

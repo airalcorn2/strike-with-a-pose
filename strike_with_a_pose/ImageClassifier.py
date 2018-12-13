@@ -10,14 +10,14 @@ from PyQt5.QtWidgets import QLabel, QPushButton
 
 USE_INCEPTION = True
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-IMAGENET_F = pkg_resources.resource_filename("strike_with_a_pose", "imagenet_classes.txt")
+IMAGENET_F = pkg_resources.resource_filename("strike_with_a_pose", "data/imagenet_classes.txt")
 SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
 TRUE_CLASS = 609
 
 
-class Classifier(nn.Module):
+class ImageClassifier(nn.Module):
     def __init__(self):
-        super(Classifier, self).__init__()
+        super(ImageClassifier, self).__init__()
         if USE_INCEPTION:
             self.net = models.inception_v3(pretrained=True)
         else:
@@ -54,10 +54,11 @@ class Classifier(nn.Module):
                            "<strong>True Label</strong>: <br>"
                            "<strong>True Probability</strong>: ")
         pred_text.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
-        # Predict button.
-        predict = QPushButton("Predict")
+
+        # Classify button.
+        classify = QPushButton("Classify")
         # Order matters. Prediction button must be named "predict" in tuple.
-        return [("pred_text", pred_text), ("predict", predict)]
+        return [("pred_text", pred_text), ("predict", classify)]
 
     def init_scene_comps(self):
         pass
@@ -82,7 +83,7 @@ class Classifier(nn.Module):
             self.pred_text.setText("<strong>Top Label</strong>: {0}<br>"
                                    "<strong>Top Label Probability</strong>: {1:.4f}<br><br>"
                                    "<strong>True Label</strong>: {2}<br>"
-                                   "<strong>True Label Probability</strong>: {3:.4f}<br>".format(top_label, top_prob, true_label, true_prob))
+                                   "<strong>True Label Probability</strong>: {3:.4f}".format(top_label, top_prob, true_label, true_prob))
 
     def render(self):
         pass
