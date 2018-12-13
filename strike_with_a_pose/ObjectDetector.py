@@ -8,9 +8,9 @@ import urllib
 from PIL import Image
 from PyQt5.QtWidgets import QPushButton
 
-YOLO_CLASSES = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.txt")
-YOLO_WEIGHTS = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.weights")
-YOLO_CONFIG = pkg_resources.resource_filename("strike_with_a_pose", "yolov3.cfg")
+YOLO_CLASSES = pkg_resources.resource_filename("strike_with_a_pose", "data/yolov3.txt")
+YOLO_WEIGHTS = pkg_resources.resource_filename("strike_with_a_pose", "data/yolov3.weights")
+YOLO_CONFIG = pkg_resources.resource_filename("strike_with_a_pose", "data/yolov3.cfg")
 YOLO_CLASSES_F = "yolo_classes.png"
 SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
 
@@ -23,7 +23,7 @@ class ObjectDetector:
         self.yolo_rgbs = np.random.uniform(0, 255, size=(classes_num, 3)) / 255.0
 
         if not os.path.isfile(YOLO_WEIGHTS):
-            print("Downloading YOLOv3 weights.")
+            print("Downloading YOLOv3 weights...")
             url = "https://pjreddie.com/media/files/yolov3.weights"
             urllib.request.urlretrieve(url, YOLO_WEIGHTS)
 
