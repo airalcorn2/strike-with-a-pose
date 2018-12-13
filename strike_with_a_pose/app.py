@@ -373,7 +373,7 @@ class SceneWindow(QOpenGLWidget):
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = False
 
     def wheelEvent(self, evt):
-        # See: http://doc.qt.io/qt-5/qwheelevent.html#angleDelta.
+        # See: http://doc.qt.io/qt-5/qwheelevent.html#angleDelta
         # and: https://wiki.qt.io/Smooth_Zoom_In_QGraphicsView.
         steps = evt.angleDelta().y() / (8 * 15)
         if self.ambient:
