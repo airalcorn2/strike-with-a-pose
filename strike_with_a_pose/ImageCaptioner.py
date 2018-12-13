@@ -149,7 +149,7 @@ class ImageCaptioner:
 
             sentence = " ".join(sampled_caption[:-1]).capitalize()
             sentence += sampled_caption[-1]
-            self.img_caption.setText(sentence)
+            self.img_caption.setText(sentence + "<br>")
 
     def render(self):
         pass
