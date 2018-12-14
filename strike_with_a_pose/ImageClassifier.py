@@ -8,7 +8,6 @@ import torchvision.transforms as transforms
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QLabel, QPushButton
 
-USE_INCEPTION = True
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 IMAGENET_F = pkg_resources.resource_filename("strike_with_a_pose", "data/imagenet_classes.txt")
 SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
@@ -18,11 +17,7 @@ TRUE_CLASS = 609
 class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
-        if USE_INCEPTION:
-            self.net = models.inception_v3(pretrained=True)
-        else:
-            self.net = models.alexnet(pretrained=True)
-
+        self.net = models.inception_v3(pretrained=True)
         self.net.eval()
         for param in self.net.parameters():
             param.requires_grad = False
