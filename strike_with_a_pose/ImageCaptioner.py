@@ -1,8 +1,8 @@
 # Adapted from: https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/image_captioning.
 
+import os
 import pickle
 import pkg_resources
-import os
 import torch
 import torch.nn as nn
 import torchvision.models as models

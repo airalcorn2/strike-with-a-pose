@@ -14,6 +14,18 @@ SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/"
 TRUE_CLASS = 609
 
 
+def load_imagenet_label_map():
+    input_f = open(IMAGENET_F)
+    label_map = {}
+    for line in input_f:
+        parts = line.strip().split(": ")
+        (num, label) = (int(parts[0]), parts[1].replace("\"", ""))
+        label_map[num] = label
+
+    input_f.close()
+    return label_map
+
+
 class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
@@ -25,21 +37,10 @@ class ImageClassifier(nn.Module):
         self.preprocess = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                                std=[0.229, 0.224, 0.225])
 
-        self.label_map = self.load_imagenet_label_map()
+        self.label_map = load_imagenet_label_map()
 
         self.true_class = TRUE_CLASS
         self.true_label = self.label_map[self.true_class]
-
-    def load_imagenet_label_map(self):
-        input_f = open(IMAGENET_F)
-        label_map = {}
-        for line in input_f:
-            parts = line.strip().split(": ")
-            (num, label) = (int(parts[0]), parts[1].replace("\"", ""))
-            label_map[num] = label
-
-        input_f.close()
-        return label_map
 
     @staticmethod
     def get_gui_comps():

@@ -1,10 +1,10 @@
 from strike_with_a_pose.ImageClassifier import ImageClassifier
 from strike_with_a_pose.ObjectDetector import ObjectDetector
 from strike_with_a_pose.ImageCaptioner import ImageCaptioner
-from strike_with_a_pose.ImageClassifier_CAM import ImageClassifier_CAM
+from strike_with_a_pose.ClassActivationMapping import ClassActivationMapping
 
 MODELS = {"classifier": ImageClassifier, "detector": ObjectDetector,
-          "captioner": ImageCaptioner, "cam": ImageClassifier_CAM}
+          "captioner": ImageCaptioner, "cam": ClassActivationMapping}
 # Order matters.
 MODEL_OBJ_AND_TEXTURE_FS = {
     "classifier": [("interior.obj", "interior.tga"),
@@ -13,26 +13,14 @@ MODEL_OBJ_AND_TEXTURE_FS = {
     "detector": [("interior.obj", "interior.tga"),
                  ("exterior.obj", "exterior.tga"),
                  ("glass.obj", "glass.tga")],
+    "captioner": [("bird.obj", "bird.tga")],
     "cam": [("interior.obj", "interior.tga"),
-                 ("exterior.obj", "exterior.tga"),
-                 ("glass.obj", "glass.tga")],
-    "captioner": [("bird.obj", "bird.tga")]
+            ("exterior.obj", "exterior.tga"),
+            ("glass.obj", "glass.tga")]
 
 }
 MODEL_INITIAL_PARAMS = {
     "classifier": {
-        "x_delta": -0.3005,
-        "y_delta": -0.2227,
-        "z_delta": -9.6000,
-        "yaw": 178.5066,
-        "pitch": -4.6715,
-        "roll": 12.8242,
-        "amb_int": 0.7000,
-        "dir_int": 0.7000,
-        "DirLight": (0.0000, 1.0000, 0.000),
-        "USE_BACKGROUND": False
-    },
-    "cam": {
         "x_delta": -0.3005,
         "y_delta": -0.2227,
         "z_delta": -9.6000,
@@ -67,10 +55,22 @@ MODEL_INITIAL_PARAMS = {
         "dir_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
         "USE_BACKGROUND": True
+    },
+    "cam": {
+        "x_delta": -0.3005,
+        "y_delta": -0.2227,
+        "z_delta": -9.6000,
+        "yaw": 178.5066,
+        "pitch": -4.6715,
+        "roll": 12.8242,
+        "amb_int": 0.7000,
+        "dir_int": 0.7000,
+        "DirLight": (0.0000, 1.0000, 0.000),
+        "USE_BACKGROUND": False
     }
 }
 
-MODEL_TYPE = "cam"
+MODEL_TYPE = "classifier"
 MODEL = MODELS[MODEL_TYPE]
 BACKGROUND_F = "background_{0}.jpg".format(MODEL_TYPE)
 OBJ_AND_TEXTURE_FS = MODEL_OBJ_AND_TEXTURE_FS[MODEL_TYPE]
