@@ -98,7 +98,7 @@ class Scene:
                         f_color = vec4(box_rgb, 1.0);
                     }
                 }
-            """
+            """,
         )
 
         self.CTX.enable(moderngl.DEPTH_TEST)
@@ -125,7 +125,11 @@ class Scene:
         self.USE_BACKGROUND = False
         if BACKGROUND_F is not None:
             background_f = "{0}{1}".format(SCENE_DIR, BACKGROUND_F)
-            background_img = Image.open(background_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
+            background_img = (
+                Image.open(background_f)
+                .transpose(Image.FLIP_TOP_BOTTOM)
+                .convert("RGBA")
+            )
             (width, height) = (WIDTH, HEIGHT)
 
             # Resize background image to work with neural network.
@@ -136,37 +140,46 @@ class Scene:
                 new_width = width
                 new_height = new_width * background_img.height // background_img.width
 
-            background_img = background_img.resize((new_width, new_height), Image.ANTIALIAS)
-            background_img = ImageOps.fit(background_img, (width, height), Image.ANTIALIAS)
+            background_img = background_img.resize(
+                (new_width, new_height), Image.ANTIALIAS
+            )
+            background_img = ImageOps.fit(
+                background_img, (width, height), Image.ANTIALIAS
+            )
 
             # Convert background image to ModernGL texture.
-            self.BACKGROUND = self.CTX.texture(background_img.size, 4, background_img.tobytes())
+            self.BACKGROUND = self.CTX.texture(
+                background_img.size, 4, background_img.tobytes()
+            )
             self.BACKGROUND.build_mipmaps()
 
             # Create background 3D object consisting of two triangles forming a
             # rectangle.
             # Screen coordinates are [-1, 1].
-            vertices = np.array([[-1.0, -1.0, 0.0],
-                                 [-1.0, 1.0, 0.0],
-                                 [1.0, 1.0, 0.0],
-                                 [-1.0, -1.0, 0.0],
-                                 [1.0, -1.0, 0.0],
-                                 [1.0, 1.0, 0.0]])
+            vertices = np.array(
+                [
+                    [-1.0, -1.0, 0.0],
+                    [-1.0, 1.0, 0.0],
+                    [1.0, 1.0, 0.0],
+                    [-1.0, -1.0, 0.0],
+                    [1.0, -1.0, 0.0],
+                    [1.0, 1.0, 0.0],
+                ]
+            )
             # Not used for the background, but the vertex shader expects a normal.
             normals = np.repeat([[0.0, 0.0, 1.0]], len(vertices), axis=0)
             # Image coordinates are [0, 1].
-            texture_coords = np.array([[0.0, 0.0],
-                                       [0.0, 1.0],
-                                       [1.0, 1.0],
-                                       [0.0, 0.0],
-                                       [1.0, 0.0],
-                                       [1.0, 1.0]])
+            texture_coords = np.array(
+                [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [0.0, 0.0], [1.0, 0.0], [1.0, 1.0]]
+            )
 
             BACKGROUND_ARRAY = np.hstack((vertices, normals, texture_coords))
-            BACKGROUND_VBO = self.CTX.buffer(BACKGROUND_ARRAY.flatten().astype("f4").tobytes())
-            self.BACKGROUND_VAO = self.CTX.simple_vertex_array(self.PROG, BACKGROUND_VBO,
-                                                               "in_vert", "in_norm",
-                                                               "in_text")
+            BACKGROUND_VBO = self.CTX.buffer(
+                BACKGROUND_ARRAY.flatten().astype("f4").tobytes()
+            )
+            self.BACKGROUND_VAO = self.CTX.simple_vertex_array(
+                self.PROG, BACKGROUND_VBO, "in_vert", "in_norm", "in_text"
+            )
 
         # Load vertices and textures.
         VAOS = []
@@ -198,12 +211,15 @@ class Scene:
             packed_array[:, :3] = original_vertices
 
             vbo = self.CTX.buffer(packed_array.flatten().astype("f4").tobytes())
-            vao = self.CTX.simple_vertex_array(self.PROG, vbo, "in_vert",
-                                               "in_norm", "in_text")
+            vao = self.CTX.simple_vertex_array(
+                self.PROG, vbo, "in_vert", "in_norm", "in_text"
+            )
             VAOS.append(vao)
 
             texture_f = SCENE_DIR + "{1}".format(SCENE_DIR, TEXTURE_F)
-            texture_img = Image.open(texture_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
+            texture_img = (
+                Image.open(texture_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
+            )
             TEXTURE = self.CTX.texture(texture_img.size, 4, texture_img.tobytes())
             TEXTURE.build_mipmaps()
             TEXTURES.append(TEXTURE)
@@ -252,15 +268,27 @@ class Scene:
         c = np.cos(theta)
         s = np.sin(theta)
         (ux, uy, uz) = (axis[0], axis[1], axis[2])
-        x_col = np.array([[c + ux ** 2 * (1 - c)],
-                          [uy * ux * (1 - c) + uz * s],
-                          [uz * ux * (1 - c) - uy * s]])
-        y_col = np.array([[ux * uy * (1 - c) - uz * s],
-                          [c + uy ** 2 * (1 - c)],
-                          [uz * uy * (1 - c) + ux * s]])
-        z_col = np.array([[ux * uz * (1 - c) + uy * s],
-                          [uy * uz * (1 - c) - ux * s],
-                          [c + uz ** 2 * (1 - c)]])
+        x_col = np.array(
+            [
+                [c + ux ** 2 * (1 - c)],
+                [uy * ux * (1 - c) + uz * s],
+                [uz * ux * (1 - c) - uy * s],
+            ]
+        )
+        y_col = np.array(
+            [
+                [ux * uy * (1 - c) - uz * s],
+                [c + uy ** 2 * (1 - c)],
+                [uz * uy * (1 - c) + ux * s],
+            ]
+        )
+        z_col = np.array(
+            [
+                [ux * uz * (1 - c) + uy * s],
+                [uy * uz * (1 - c) - ux * s],
+                [c + uz ** 2 * (1 - c)],
+            ]
+        )
         return np.hstack((x_col, y_col, z_col))
 
     def gen_rotation_matrix(self, yaw=0.0, pitch=0.0, roll=0.0):
@@ -289,7 +317,7 @@ class Scene:
         yaw = np.arctan2(R[0, 2], R[2, 2])
         roll = np.arctan2(R[1, 0], R[1, 1])
         pitch = np.arctan2(-R[1, 2], np.sqrt(R[1, 0] ** 2 + R[1, 1] ** 2))
-        return(yaw, pitch, roll)
+        return (yaw, pitch, roll)
 
     def rotate(self, angles):
         R_yaw = self.gen_rotation_matrix_from_angle_axis(angles[0], self.R[:, 1])
@@ -314,11 +342,20 @@ class Scene:
         z = self.PROG["Zoom"].value
         (yaw, pitch, roll) = self.get_angles_from_matrix(self.R)
 
-        params = [("x_delta", x), ("y_delta", y), ("z_delta", z),
-                  ("yaw", np.degrees(yaw)), ("pitch", np.degrees(pitch)), ("roll", np.degrees(roll)),
-                  ("amb_int", self.PROG["amb_int"].value),
-                  ("dir_int", self.PROG["dir_int"].value),
-                  ("DirLight", tuple(np.dot(self.L.T, np.array(self.PROG["DirLight"].value))))]
+        params = [
+            ("x_delta", x),
+            ("y_delta", y),
+            ("z_delta", z),
+            ("yaw", np.degrees(yaw)),
+            ("pitch", np.degrees(pitch)),
+            ("roll", np.degrees(roll)),
+            ("amb_int", self.PROG["amb_int"].value),
+            ("dir_int", self.PROG["dir_int"].value),
+            (
+                "DirLight",
+                tuple(np.dot(self.L.T, np.array(self.PROG["DirLight"].value))),
+            ),
+        ]
         return params
 
     def set_params(self, params):
@@ -330,8 +367,9 @@ class Scene:
             rads_y = np.sin(rads)
             params[rot] = np.arctan2(rads_y, rads_x)
 
-        self.R = self.gen_rotation_matrix(params["yaw"], params["pitch"],
-                                          params["roll"]).T
+        self.R = self.gen_rotation_matrix(
+            params["yaw"], params["pitch"], params["roll"]
+        ).T
         self.PROG["R"].write(self.R.astype("f4").tobytes())
         self.PROG["amb_int"].value = params["amb_int"]
         self.PROG["dir_int"].value = params["dir_int"]

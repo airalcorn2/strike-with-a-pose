@@ -1,18 +1,25 @@
-from strike_with_a_pose.ImageClassifier import ImageClassifier
-from strike_with_a_pose.ObjectDetector import ObjectDetector
-from strike_with_a_pose.ImageCaptioner import ImageCaptioner
+from strike_with_a_pose.image_classifier import ImageClassifier
+from strike_with_a_pose.obejct_detector import ObjectDetector
+from strike_with_a_pose.image_captioner import ImageCaptioner
 
-MODELS = {"classifier": ImageClassifier, "detector": ObjectDetector,
-          "captioner": ImageCaptioner}
+MODELS = {
+    "classifier": ImageClassifier,
+    "detector": ObjectDetector,
+    "captioner": ImageCaptioner,
+}
 # Order matters.
 MODEL_OBJ_AND_TEXTURE_FS = {
-    "classifier": [("interior.obj", "interior.tga"),
-                   ("exterior.obj", "exterior.tga"),
-                   ("glass.obj", "glass.tga")],
-    "detector": [("interior.obj", "interior.tga"),
-                 ("exterior.obj", "exterior.tga"),
-                 ("glass.obj", "glass.tga")],
-    "captioner": [("bird.obj", "bird.tga")]
+    "classifier": [
+        ("interior.obj", "interior.tga"),
+        ("exterior.obj", "exterior.tga"),
+        ("glass.obj", "glass.tga"),
+    ],
+    "detector": [
+        ("interior.obj", "interior.tga"),
+        ("exterior.obj", "exterior.tga"),
+        ("glass.obj", "glass.tga"),
+    ],
+    "captioner": [("bird.obj", "bird.tga")],
 }
 MODEL_INITIAL_PARAMS = {
     "classifier": {
@@ -25,7 +32,7 @@ MODEL_INITIAL_PARAMS = {
         "amb_int": 0.7000,
         "dir_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
-        "USE_BACKGROUND": False
+        "USE_BACKGROUND": True,
     },
     "detector": {
         "x_delta": -0.4260,
@@ -37,7 +44,7 @@ MODEL_INITIAL_PARAMS = {
         "amb_int": 0.7000,
         "dir_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
-        "USE_BACKGROUND": True
+        "USE_BACKGROUND": True,
     },
     "captioner": {
         "x_delta": -0.2401,
@@ -49,8 +56,8 @@ MODEL_INITIAL_PARAMS = {
         "amb_int": 0.7000,
         "dir_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
-        "USE_BACKGROUND": True
-    }
+        "USE_BACKGROUND": True,
+    },
 }
 
 MODEL_TYPE = "classifier"

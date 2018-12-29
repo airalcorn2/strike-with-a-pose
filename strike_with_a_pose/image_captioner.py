@@ -14,12 +14,18 @@ from PyQt5.QtWidgets import QLabel, QPushButton
 from torch.nn.utils.rnn import pack_padded_sequence
 from torchvision import transforms
 
-VOCAB_PATH = pkg_resources.resource_filename("strike_with_a_pose", "data/idx2word.pydict")
+VOCAB_PATH = pkg_resources.resource_filename(
+    "strike_with_a_pose", "data/idx2word.pydict"
+)
 EMBED_SIZE = 256
 HIDDEN_SIZE = 512
 NUM_LSTM_LAYER = 1
-ENCODER_PATH = pkg_resources.resource_filename("strike_with_a_pose", "data/encoder-5-3000.pkl")
-DECODER_PATH = pkg_resources.resource_filename("strike_with_a_pose", "data/decoder-5-3000.pkl")
+ENCODER_PATH = pkg_resources.resource_filename(
+    "strike_with_a_pose", "data/encoder-5-3000.pkl"
+)
+DECODER_PATH = pkg_resources.resource_filename(
+    "strike_with_a_pose", "data/decoder-5-3000.pkl"
+)
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -43,7 +49,9 @@ class EncoderCNN(nn.Module):
 
 
 class DecoderRNN(nn.Module):
-    def __init__(self, embed_size, hidden_size, vocab_size, num_layers, max_seq_length=20):
+    def __init__(
+        self, embed_size, hidden_size, vocab_size, num_layers, max_seq_length=20
+    ):
         """Set the hyper-parameters and build the layers."""
         super(DecoderRNN, self).__init__()
         self.embed = nn.Embedding(vocab_size, embed_size)
@@ -94,7 +102,9 @@ class ImageCaptioner:
 
         # Build models.
         encoder = EncoderCNN(EMBED_SIZE).eval()
-        decoder = DecoderRNN(EMBED_SIZE, HIDDEN_SIZE, len(self.idx2word), NUM_LSTM_LAYER)
+        decoder = DecoderRNN(
+            EMBED_SIZE, HIDDEN_SIZE, len(self.idx2word), NUM_LSTM_LAYER
+        )
         self.encoder = encoder.to(DEVICE)
         self.decoder = decoder.to(DEVICE)
 
@@ -102,11 +112,12 @@ class ImageCaptioner:
         self.encoder.load_state_dict(torch.load(ENCODER_PATH))
         self.decoder.load_state_dict(torch.load(DECODER_PATH))
 
-        self.transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406),
-                                 (0.229, 0.224, 0.225))
-        ])
+        self.transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+            ]
+        )
 
     @staticmethod
     def get_gui_comps():

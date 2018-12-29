@@ -100,7 +100,7 @@ PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 ### Using Different Machine Learning Models
 
 Users can experiment with different machine learning models in Strike (With) A Pose by:
-1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`ImageClassifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ImageClassifier.py), [`ObjectDetector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ObjectDetector.py), and  [`ImageCaptioner.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/ImageCaptioner.py) [with major contributions by [Qi Li](https://www.linkedin.com/in/qili/)]).
+1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`image_classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/image_classifier.py), [`object_detector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/object_detector.py), and  [`image_captioner.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/image_captioner.py) [with major contributions by [Qi Li](https://www.linkedin.com/in/qili/)]).
 2. Setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
 3. Running the following command inside the `strike-with-a-pose/` directory:
 

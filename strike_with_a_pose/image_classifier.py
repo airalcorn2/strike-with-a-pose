@@ -9,7 +9,9 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QLabel, QPushButton
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-IMAGENET_F = pkg_resources.resource_filename("strike_with_a_pose", "data/imagenet_classes.txt")
+IMAGENET_F = pkg_resources.resource_filename(
+    "strike_with_a_pose", "data/imagenet_classes.txt"
+)
 SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
 TRUE_CLASS = 609
 
@@ -22,8 +24,9 @@ class ImageClassifier(nn.Module):
         for param in self.net.parameters():
             param.requires_grad = False
 
-        self.preprocess = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                               std=[0.229, 0.224, 0.225])
+        self.preprocess = transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        )
 
         self.label_map = self.load_imagenet_label_map()
 
@@ -35,7 +38,7 @@ class ImageClassifier(nn.Module):
         label_map = {}
         for line in input_f:
             parts = line.strip().split(": ")
-            (num, label) = (int(parts[0]), parts[1].replace("\"", ""))
+            (num, label) = (int(parts[0]), parts[1].replace('"', ""))
             label_map[num] = label
 
         input_f.close()
@@ -44,10 +47,12 @@ class ImageClassifier(nn.Module):
     @staticmethod
     def get_gui_comps():
         # Prediction text.
-        pred_text = QLabel("<strong>Top Label</strong>: <br>"
-                           "<strong>Top Probability</strong>: <br><br>"
-                           "<strong>True Label</strong>: <br>"
-                           "<strong>True Probability</strong>: ")
+        pred_text = QLabel(
+            "<strong>Top Label</strong>: <br>"
+            "<strong>Top Probability</strong>: <br><br>"
+            "<strong>True Label</strong>: <br>"
+            "<strong>True Probability</strong>: "
+        )
         pred_text.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
 
         # Classify button.
@@ -75,10 +80,14 @@ class ImageClassifier(nn.Module):
             true_label = self.true_label
             true_prob = probs_np[self.true_class]
 
-            self.pred_text.setText("<strong>Top Label</strong>: {0}<br>"
-                                   "<strong>Top Label Probability</strong>: {1:.4f}<br><br>"
-                                   "<strong>True Label</strong>: {2}<br>"
-                                   "<strong>True Label Probability</strong>: {3:.4f}".format(top_label, top_prob, true_label, true_prob))
+            self.pred_text.setText(
+                "<strong>Top Label</strong>: {0}<br>"
+                "<strong>Top Label Probability</strong>: {1:.4f}<br><br>"
+                "<strong>True Label</strong>: {2}<br>"
+                "<strong>True Label Probability</strong>: {3:.4f}".format(
+                    top_label, top_prob, true_label, true_prob
+                )
+            )
 
     def render(self):
         pass

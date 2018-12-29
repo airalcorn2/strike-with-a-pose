@@ -9,7 +9,9 @@ from PIL import Image
 from PyQt5.QtWidgets import QPushButton
 
 YOLO_CLASSES = pkg_resources.resource_filename("strike_with_a_pose", "data/yolov3.txt")
-YOLO_WEIGHTS = pkg_resources.resource_filename("strike_with_a_pose", "data/yolov3.weights")
+YOLO_WEIGHTS = pkg_resources.resource_filename(
+    "strike_with_a_pose", "data/yolov3.weights"
+)
 YOLO_CONFIG = pkg_resources.resource_filename("strike_with_a_pose", "data/yolov3.cfg")
 YOLO_CLASSES_F = "yolo_classes.png"
 SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
@@ -29,8 +31,9 @@ class ObjectDetector:
 
         self.net = cv2.dnn.readNet(YOLO_WEIGHTS, YOLO_CONFIG)
         layer_names = self.net.getLayerNames()
-        self.yolo_output_layers = [layer_names[i[0] - 1] for i in
-                                   self.net.getUnconnectedOutLayers()]
+        self.yolo_output_layers = [
+            layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()
+        ]
 
         self.YOLO_BOX_VBOS = []
         self.YOLO_BOX_VAOS = []
@@ -46,9 +49,12 @@ class ObjectDetector:
 
     def init_scene_comps(self):
         yolo_classes_f = "{0}{1}".format(SCENE_DIR, YOLO_CLASSES_F)
-        yolo_classes_img = Image.open(yolo_classes_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
-        self.YOLO_LABELS = self.CTX.texture(yolo_classes_img.size, 4,
-                                            yolo_classes_img.tobytes())
+        yolo_classes_img = (
+            Image.open(yolo_classes_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
+        )
+        self.YOLO_LABELS = self.CTX.texture(
+            yolo_classes_img.size, 4, yolo_classes_img.tobytes()
+        )
         self.YOLO_LABELS.build_mipmaps()
 
     def predict(self, image):
@@ -67,8 +73,9 @@ class ObjectDetector:
 
         # Magic number.
         yolo_size = (416, 416)
-        blob = cv2.dnn.blobFromImage(image, scale, yolo_size, (0, 0, 0), True,
-                                     crop=False)
+        blob = cv2.dnn.blobFromImage(
+            image, scale, yolo_size, (0, 0, 0), True, crop=False
+        )
         self.net.setInput(blob)
         outs = self.net.forward(self.yolo_output_layers)
 
@@ -94,20 +101,25 @@ class ObjectDetector:
                     class_ids.append(class_id)
                     confidences.append(float(confidence))
                     boxes.append(
-                        np.array([[center_x - half_w, center_y + half_h],
-                                  [center_x + half_w, center_y + half_h],
-                                  [center_x - half_w, center_y + half_h],
-                                  [center_x - half_w, center_y - half_h],
-                                  [center_x + half_w, center_y + half_h],
-                                  [center_x + half_w, center_y - half_h],
-                                  [center_x + half_w, center_y - half_h],
-                                  [center_x - half_w, center_y - half_h]]))
+                        np.array(
+                            [
+                                [center_x - half_w, center_y + half_h],
+                                [center_x + half_w, center_y + half_h],
+                                [center_x - half_w, center_y + half_h],
+                                [center_x - half_w, center_y - half_h],
+                                [center_x + half_w, center_y + half_h],
+                                [center_x + half_w, center_y - half_h],
+                                [center_x + half_w, center_y - half_h],
+                                [center_x - half_w, center_y - half_h],
+                            ]
+                        )
+                    )
 
-        return self.create_box_and_label_arrays(cv2.dnn.NMSBoxes(bboxes,
-                                                                 confidences,
-                                                                 conf_threshold,
-                                                                 nms_threshold),
-                                                class_ids, boxes)
+        return self.create_box_and_label_arrays(
+            cv2.dnn.NMSBoxes(bboxes, confidences, conf_threshold, nms_threshold),
+            class_ids,
+            boxes,
+        )
 
     def create_box_and_label_arrays(self, indices, class_ids, boxes):
         box_arrays = []
@@ -129,13 +141,16 @@ class ObjectDetector:
             box_arrays.append(box_array)
             label_length = len(self.classes[class_id]) / 15.0
 
-            vertices_yolo = np.array([[box_x, box_y, 0.0],
-                                      [box_x, box_y - 0.1, 0.0],
-                                      [box_x + 0.5 * label_length, box_y, 0.0],
-                                      [box_x + 0.5 * label_length, box_y - 0.1,
-                                       0.0],
-                                      [box_x + 0.5 * label_length, box_y, 0.0],
-                                      [box_x, box_y - 0.1, 0.0]])
+            vertices_yolo = np.array(
+                [
+                    [box_x, box_y, 0.0],
+                    [box_x, box_y - 0.1, 0.0],
+                    [box_x + 0.5 * label_length, box_y, 0.0],
+                    [box_x + 0.5 * label_length, box_y - 0.1, 0.0],
+                    [box_x + 0.5 * label_length, box_y, 0.0],
+                    [box_x, box_y - 0.1, 0.0],
+                ]
+            )
 
             normals = np.repeat([[0.0, 0.0, 1.0]], len(vertices_yolo), axis=0)
 
@@ -144,12 +159,39 @@ class ObjectDetector:
             num_cols = 4
 
             yolo_coords = np.array(
-                [[col_num / num_cols, 1.0 - row_num * (label_height_pix / img_size_pix)],
-                 [col_num / num_cols, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix],
-                 [(col_num + 1) / num_cols * label_length, 1.0 - row_num * (label_height_pix / img_size_pix)],
-                 [(col_num + 1) / num_cols * label_length, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix],
-                 [(col_num + 1) / num_cols * label_length, 1.0 - row_num * (label_height_pix / img_size_pix)],
-                 [col_num / num_cols, 1.0 - (row_num + 1) * (label_height_pix / img_size_pix) + 1.0 / img_size_pix]])
+                [
+                    [
+                        col_num / num_cols,
+                        1.0 - row_num * (label_height_pix / img_size_pix),
+                    ],
+                    [
+                        col_num / num_cols,
+                        1.0
+                        - (row_num + 1) * (label_height_pix / img_size_pix)
+                        + 1.0 / img_size_pix,
+                    ],
+                    [
+                        (col_num + 1) / num_cols * label_length,
+                        1.0 - row_num * (label_height_pix / img_size_pix),
+                    ],
+                    [
+                        (col_num + 1) / num_cols * label_length,
+                        1.0
+                        - (row_num + 1) * (label_height_pix / img_size_pix)
+                        + 1.0 / img_size_pix,
+                    ],
+                    [
+                        (col_num + 1) / num_cols * label_length,
+                        1.0 - row_num * (label_height_pix / img_size_pix),
+                    ],
+                    [
+                        col_num / num_cols,
+                        1.0
+                        - (row_num + 1) * (label_height_pix / img_size_pix)
+                        + 1.0 / img_size_pix,
+                    ],
+                ]
+            )
             label_array = np.hstack((vertices_yolo, normals, yolo_coords))
             label_arrays.append(label_array)
 
@@ -162,16 +204,17 @@ class ObjectDetector:
         for i in range(len(box_arrays)):
             box_array = box_arrays[i]
             box_vbo = self.CTX.buffer(box_array.astype("f4").tobytes())
-            box_vao = self.CTX.simple_vertex_array(self.PROG, box_vbo, "in_vert",
-                                                   "in_norm", "in_text")
+            box_vao = self.CTX.simple_vertex_array(
+                self.PROG, box_vbo, "in_vert", "in_norm", "in_text"
+            )
             self.YOLO_BOX_VBOS.append(box_vbo)
             self.YOLO_BOX_VAOS.append(box_vao)
 
             label_array = label_arrays[i]
             label_vbo = self.CTX.buffer(label_array.flatten().astype("f4").tobytes())
-            label_vao = self.CTX.simple_vertex_array(self.PROG, label_vbo,
-                                                     "in_vert", "in_norm",
-                                                     "in_text")
+            label_vao = self.CTX.simple_vertex_array(
+                self.PROG, label_vbo, "in_vert", "in_norm", "in_text"
+            )
             self.YOLO_LABEL_VBOS.append(label_vbo)
             self.YOLO_LABEL_VAOS.append(label_vao)
 

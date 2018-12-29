@@ -15,7 +15,9 @@ from PyQt5.QtWidgets import QWidget
 from strike_with_a_pose.scene import Scene
 from strike_with_a_pose.settings import INITIAL_PARAMS, MODEL
 
-INSTRUCTIONS_F = pkg_resources.resource_filename("strike_with_a_pose",  "instructions.html")
+INSTRUCTIONS_F = pkg_resources.resource_filename(
+    "strike_with_a_pose", "instructions.html"
+)
 
 fmt = QSurfaceFormat()
 fmt.setVersion(3, 3)
@@ -124,12 +126,24 @@ class RotateTool:
         self.arcball_on = False
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.obj = {"last_mx": 0.0, "last_my": 0.0,
-                    "cur_mx": 0.0, "cur_my": 0.0,
-                    "yaw": 0, "pitch": 0, "roll": 0}
-        self.light = {"last_mx": 0.0, "last_my": 0.0,
-                      "cur_mx": 0.0, "cur_my": 0.0,
-                      "yaw": 0, "pitch": 0, "roll": 0}
+        self.obj = {
+            "last_mx": 0.0,
+            "last_my": 0.0,
+            "cur_mx": 0.0,
+            "cur_my": 0.0,
+            "yaw": 0,
+            "pitch": 0,
+            "roll": 0,
+        }
+        self.light = {
+            "last_mx": 0.0,
+            "last_my": 0.0,
+            "cur_mx": 0.0,
+            "cur_my": 0.0,
+            "yaw": 0,
+            "pitch": 0,
+            "roll": 0,
+        }
         self.data = {"obj": self.obj, "light": self.light}
 
     def start_drag(self, x, y, which):
@@ -161,25 +175,39 @@ class RotateTool:
     def update_angles(self, which):
         data = self.data[which]
         if (data["cur_mx"] != data["last_mx"]) or (data["cur_my"] != data["last_my"]):
-            va = self.get_arcball_vector(data["last_mx"], data["last_my"],
-                                         self.screen_width, self.screen_height)
-            vb = self.get_arcball_vector(data["cur_mx"], data["cur_my"],
-                                         self.screen_width, self.screen_height)
+            va = self.get_arcball_vector(
+                data["last_mx"], data["last_my"], self.screen_width, self.screen_height
+            )
+            vb = self.get_arcball_vector(
+                data["cur_mx"], data["cur_my"], self.screen_width, self.screen_height
+            )
             theta = 3.0 * np.arccos(min((1, np.dot(va, vb))))
             axis = np.cross(va, vb)
             c = np.cos(theta)
             s = np.sin(theta)
             # See: https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle.
             (ux, uy, uz) = (axis[0], axis[1], axis[2])
-            x_col = np.array([[c + ux ** 2 * (1 - c)],
-                              [uy * ux * (1 - c) + uz * s],
-                              [uz * ux * (1 - c) - uy * s]])
-            y_col = np.array([[ux * uy * (1 - c) - uz * s],
-                              [c + uy ** 2 * (1 - c)],
-                              [uz * uy * (1 - c) + ux * s]])
-            z_col = np.array([[ux * uz * (1 - c) + uy * s],
-                              [uy * uz * (1 - c) - ux * s],
-                              [c + uz ** 2 * (1 - c)]])
+            x_col = np.array(
+                [
+                    [c + ux ** 2 * (1 - c)],
+                    [uy * ux * (1 - c) + uz * s],
+                    [uz * ux * (1 - c) - uy * s],
+                ]
+            )
+            y_col = np.array(
+                [
+                    [ux * uy * (1 - c) - uz * s],
+                    [c + uy ** 2 * (1 - c)],
+                    [uz * uy * (1 - c) + ux * s],
+                ]
+            )
+            z_col = np.array(
+                [
+                    [ux * uz * (1 - c) + uy * s],
+                    [uy * uz * (1 - c) - ux * s],
+                    [c + uz ** 2 * (1 - c)],
+                ]
+            )
             # See: http://www.songho.ca/opengl/gl_anglestoaxes.html. "RyRxRz" --> (yaw, pitch, roll)
             R = np.hstack((x_col, y_col, z_col))
 
@@ -265,9 +293,15 @@ class SceneWindow(QOpenGLWidget):
                     error.show()
                     self.error = error
                     return
-            if name == "z_delta" and not (self.scene.TOO_FAR <= params[name] <= self.scene.TOO_CLOSE):
+            if name == "z_delta" and not (
+                self.scene.TOO_FAR <= params[name] <= self.scene.TOO_CLOSE
+            ):
                 z_info = QMessageBox()
-                z_info.setText("z_delta is capped between {0} and {1}.".format(self.scene.TOO_FAR, self.scene.TOO_CLOSE))
+                z_info.setText(
+                    "z_delta is capped between {0} and {1}.".format(
+                        self.scene.TOO_FAR, self.scene.TOO_CLOSE
+                    )
+                )
                 z_info.setWindowTitle("z_delta")
                 z_info.show()
                 self.z_info = z_info
@@ -277,7 +311,11 @@ class SceneWindow(QOpenGLWidget):
         for trans in ["x_delta", "y_delta"]:
             if not (-max_trans <= params[trans] <= max_trans):
                 trans_info = QMessageBox()
-                trans_info.setText("{0} is capped between -{1:.4f} and {1:.4f} for a z_delta of {2:.4f}.".format(trans, max_trans, params["z_delta"]))
+                trans_info.setText(
+                    "{0} is capped between -{1:.4f} and {1:.4f} for a z_delta of {2:.4f}.".format(
+                        trans, max_trans, params["z_delta"]
+                    )
+                )
                 trans_info.setWindowTitle(trans)
                 trans_info.show()
                 self.trans_info = trans_info
@@ -309,7 +347,9 @@ class SceneWindow(QOpenGLWidget):
             self.model.clear()
 
         if event.key() == QtCore.Qt.Key_X:
-            self.scene.PROG["use_texture"].value = not self.scene.PROG["use_texture"].value
+            self.scene.PROG["use_texture"].value = not self.scene.PROG[
+                "use_texture"
+            ].value
 
         if event.key() == QtCore.Qt.Key_E:
             self.bring_up_entry_form()
@@ -318,25 +358,35 @@ class SceneWindow(QOpenGLWidget):
             self.rotate = False
             self.ambient = False
             self.directional = False
-            self.mode_text.setText("""<p align="center"><strong>Translate</strong></p>""")
+            self.mode_text.setText(
+                """<p align="center"><strong>Translate</strong></p>"""
+            )
 
         if event.key() == QtCore.Qt.Key_R:
             if self.rotate:
                 self.rotate = False
-                self.mode_text.setText("""<p align="center"><strong>Translate</strong></p>""")
+                self.mode_text.setText(
+                    """<p align="center"><strong>Translate</strong></p>"""
+                )
             else:
                 self.rotate = True
-                self.mode_text.setText("""<p align="center"><strong>Rotate</strong></p>""")
+                self.mode_text.setText(
+                    """<p align="center"><strong>Rotate</strong></p>"""
+                )
             self.ambient = False
             self.directional = False
 
         if event.key() == QtCore.Qt.Key_A:
             if self.ambient:
                 self.ambient = False
-                self.mode_text.setText("""<p align="center"><strong>Translate</strong></p>""")
+                self.mode_text.setText(
+                    """<p align="center"><strong>Translate</strong></p>"""
+                )
             else:
                 self.ambient = True
-                self.mode_text.setText("""<p align="center"><strong>Ambient Light</strong></p>""")
+                self.mode_text.setText(
+                    """<p align="center"><strong>Ambient Light</strong></p>"""
+                )
 
             self.rotate = False
             self.directional = False
@@ -344,10 +394,14 @@ class SceneWindow(QOpenGLWidget):
         if event.key() == QtCore.Qt.Key_D:
             if self.directional:
                 self.directional = False
-                self.mode_text.setText("""<p align="center"><strong>Translate</strong></p>""")
+                self.mode_text.setText(
+                    """<p align="center"><strong>Translate</strong></p>"""
+                )
             else:
                 self.directional = True
-                self.mode_text.setText("""<p align="center"><strong>Directional Light</strong></p>""")
+                self.mode_text.setText(
+                    """<p align="center"><strong>Directional Light</strong></p>"""
+                )
             self.rotate = False
             self.ambient = False
 
@@ -401,7 +455,11 @@ class SceneWindow(QOpenGLWidget):
             self.scene.rotate_light(self.rotate_tool.get_value("light"))
         elif not self.ambient:
             self.pan_tool.start_drag(evt.x() / 512, evt.y() / 512)
-            self.scene.pan(self.pan_tool.get_value(np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)))
+            self.scene.pan(
+                self.pan_tool.get_value(
+                    np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
+                )
+            )
         self.update()
         self.fill_entry_form()
         self.model.clear()
@@ -415,7 +473,11 @@ class SceneWindow(QOpenGLWidget):
             self.scene.rotate_light(self.rotate_tool.get_value("light"))
         elif not self.ambient:
             self.pan_tool.dragging(evt.x() / 512, evt.y() / 512)
-            self.scene.pan(self.pan_tool.get_value(np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)))
+            self.scene.pan(
+                self.pan_tool.get_value(
+                    np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
+                )
+            )
         self.update()
         self.fill_entry_form()
 
@@ -427,18 +489,28 @@ class SceneWindow(QOpenGLWidget):
             self.rotate_tool.stop_drag(evt.x(), evt.y(), "light")
             self.scene.rotate_light(self.rotate_tool.get_value("light"))
         elif not (self.ambient or self.directional):
-            self.pan_tool.stop_drag(evt.x() / 512, evt.y() / 512, np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z))
-            self.scene.pan(self.pan_tool.get_value(np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)))
+            self.pan_tool.stop_drag(
+                evt.x() / 512,
+                evt.y() / 512,
+                np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z),
+            )
+            self.scene.pan(
+                self.pan_tool.get_value(
+                    np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
+                )
+            )
         self.update()
         self.fill_entry_form()
 
     def paintGL(self):
         if self.scene is None:
             self.scene = self.scene_class()
-            self.wheel_tool = WheelTool(self.scene.PROG["amb_int"].value,
-                                        self.scene.PROG["dir_int"].value,
-                                        self.scene.TOO_CLOSE,
-                                        self.scene.TOO_FAR)
+            self.wheel_tool = WheelTool(
+                self.scene.PROG["amb_int"].value,
+                self.scene.PROG["dir_int"].value,
+                self.scene.TOO_CLOSE,
+                self.scene.TOO_FAR,
+            )
             self.pan_tool = PanTool(self.scene.TAN_ANGLE)
 
             self.pan_tool.total_x = INITIAL_PARAMS["x_delta"]
@@ -489,7 +561,9 @@ class Window(QWidget):
         # Parameter entry components are laid out vertically.
         pvlo = QVBoxLayout()
 
-        param_text = QLabel("""<p align="center"><strong>Scene Parameters</strong></p>""")
+        param_text = QLabel(
+            """<p align="center"><strong>Scene Parameters</strong></p>"""
+        )
         param_text.setFixedSize(col_width, header_height)
 
         pvlo.addWidget(param_text)
@@ -498,8 +572,17 @@ class Window(QWidget):
 
         flo = QFormLayout()
         entry_fields = {}
-        params = ["x_delta", "y_delta", "z_delta", "yaw", "pitch", "roll",
-                  "amb_int", "dir_int", "DirLight"]
+        params = [
+            "x_delta",
+            "y_delta",
+            "z_delta",
+            "yaw",
+            "pitch",
+            "roll",
+            "amb_int",
+            "dir_int",
+            "DirLight",
+        ]
         for name in params:
             # See: https://www.tutorialspoint.com/pyqt/pyqt_qlineedit_widget.htm.
             edit = QLineEdit()
@@ -555,7 +638,9 @@ class Window(QWidget):
         # Component #3: instructions.
         ivlo = QVBoxLayout()
 
-        instructions_header = QLabel("""<p align="center"><strong>Instructions</strong></p>""")
+        instructions_header = QLabel(
+            """<p align="center"><strong>Instructions</strong></p>"""
+        )
         instructions_header.setFixedHeight(header_height)
         ivlo.addWidget(instructions_header)
 
