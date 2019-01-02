@@ -132,6 +132,12 @@ python3 setup.py install
 
 ![](image_caption_example.png)
 
+#### Class Activation Mapping
+
+"[Learning Deep Features for Discriminative Localization-Bolei zhou et all., 2016](https://arxiv.org/pdf/1512.04150.pdf)"
+
+![](class_activation_map_example.png)
+
 ### Additional Modes
 
 Pressing **L** will toggle **Live** mode. When on, the neural network will continuously generate predictions. Note, **Live** mode can cause considerable lag if you do not have each of ***(1)*** a powerful GPU, ***(2)*** [CUDA](https://developer.nvidia.com/cuda-90-download-archive) installed, and ***(3)*** a [PyTorch version with CUDA](https://pytorch.org/get-started/locally/) support installed.
