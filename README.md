@@ -100,7 +100,7 @@ PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 ### Using Different Machine Learning Models
 
 Users can experiment with different machine learning models in Strike (With) A Pose by:
-1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`image_classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/image_classifier.py), [`object_detector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/object_detector.py), and  [`image_captioner.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/image_captioner.py) [with major contributions by [Qi Li](https://www.linkedin.com/in/qili/)]).
+1. Defining a model class that implements the `get_gui_comps`, `init_scene_comps`, `predict`, `render`, and `clear` functions (e.g., [`image_classifier.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/image_classifier.py), [`object_detector.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/object_detector.py), [`image_captioner.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/image_captioner.py), and [`class_activation_mapper.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/class_activation_mapper.py) [with major contributions by [Qi Li](https://www.linkedin.com/in/qili/)]).
 2. Setting the `MODEL` variable in [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
 3. Running the following command inside the `strike-with-a-pose/` directory:
 
@@ -132,9 +132,9 @@ python3 setup.py install
 
 ![](image_caption_example.png)
 
-#### Class Activation Mapping
+#### Class Activation Mapper
 
-"[Learning Deep Features for Discriminative Localization](https://arxiv.org/pdf/1512.04150.pdf)"-like (Zhou et al., 2016) examples
+"[Learning Deep Features for Discriminative Localization](https://arxiv.org/pdf/1512.04150.pdf)"-like (Zhou et al., 2016) examples.
 
 ![](class_activation_map_example.png)
 
