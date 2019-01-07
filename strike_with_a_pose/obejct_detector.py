@@ -35,11 +35,6 @@ class ObjectDetector:
             layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()
         ]
 
-        self.YOLO_BOX_VBOS = []
-        self.YOLO_BOX_VAOS = []
-        self.YOLO_LABEL_VBOS = []
-        self.YOLO_LABEL_VAOS = []
-
     @staticmethod
     def get_gui_comps():
         # Detect button.
@@ -56,6 +51,11 @@ class ObjectDetector:
             yolo_classes_img.size, 4, yolo_classes_img.tobytes()
         )
         self.YOLO_LABELS.build_mipmaps()
+
+        self.YOLO_BOX_VBOS = []
+        self.YOLO_BOX_VAOS = []
+        self.YOLO_LABEL_VBOS = []
+        self.YOLO_LABEL_VAOS = []
 
     def predict(self, image):
         boxes = []

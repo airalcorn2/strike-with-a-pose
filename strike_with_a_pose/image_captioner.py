@@ -1,8 +1,8 @@
 # Adapted from: https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/image_captioning.
 
+import os
 import pickle
 import pkg_resources
-import os
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -64,7 +64,7 @@ class DecoderRNN(nn.Module):
         embeddings = self.embed(captions)
         embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
         packed = pack_padded_sequence(embeddings, lengths, batch_first=True)
-        hiddens, _ = self.lstm(packed)
+        (hiddens, _) = self.lstm(packed)
         outputs = self.linear(hiddens[0])
         return outputs
 
@@ -75,7 +75,7 @@ class DecoderRNN(nn.Module):
         for i in range(self.max_seg_length):
             hiddens, states = self.lstm(inputs, states)
             outputs = self.linear(hiddens.squeeze(1))
-            _, predicted = outputs.max(1)
+            (_, predicted) = outputs.max(1)
             sampled_ids.append(predicted)
             inputs = self.embed(predicted)
             inputs = inputs.unsqueeze(1)
