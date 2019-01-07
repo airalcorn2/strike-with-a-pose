@@ -1,11 +1,13 @@
 from strike_with_a_pose.image_classifier import ImageClassifier
 from strike_with_a_pose.obejct_detector import ObjectDetector
 from strike_with_a_pose.image_captioner import ImageCaptioner
+from strike_with_a_pose.class_activation_mapper import ClassActivationMapper
 
 MODELS = {
     "classifier": ImageClassifier,
     "detector": ObjectDetector,
     "captioner": ImageCaptioner,
+    "mapper": ClassActivationMapper,
 }
 # Order matters.
 MODEL_OBJ_AND_TEXTURE_FS = {
@@ -20,6 +22,11 @@ MODEL_OBJ_AND_TEXTURE_FS = {
         ("glass.obj", "glass.tga"),
     ],
     "captioner": [("bird.obj", "bird.tga")],
+    "mapper": [
+        ("interior.obj", "interior.tga"),
+        ("exterior.obj", "exterior.tga"),
+        ("glass.obj", "glass.tga"),
+    ],
 }
 MODEL_INITIAL_PARAMS = {
     "classifier": {
@@ -58,9 +65,21 @@ MODEL_INITIAL_PARAMS = {
         "DirLight": (0.0000, 1.0000, 0.000),
         "USE_BACKGROUND": True,
     },
+    "mapper": {
+        "x_delta": -0.3005,
+        "y_delta": -0.2227,
+        "z_delta": -9.6000,
+        "yaw": 178.5066,
+        "pitch": -4.6715,
+        "roll": 12.8242,
+        "amb_int": 0.7000,
+        "dir_int": 0.7000,
+        "DirLight": (0.0000, 1.0000, 0.000),
+        "USE_BACKGROUND": False
+    },
 }
 
-MODEL_TYPE = "classifier"
+MODEL_TYPE = "mapper"
 MODEL = MODELS[MODEL_TYPE]
 BACKGROUND_F = "background_{0}.jpg".format(MODEL_TYPE)
 OBJ_AND_TEXTURE_FS = MODEL_OBJ_AND_TEXTURE_FS[MODEL_TYPE]
