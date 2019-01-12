@@ -9,7 +9,7 @@ from OpenGL import GL
 from PIL import Image
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QSurfaceFormat
-from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QLabel, QLineEdit
+from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QInputDialog, QLabel, QLineEdit
 from PyQt5.QtWidgets import QMessageBox, QOpenGLWidget, QPushButton, QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 from strike_with_a_pose.scene import Scene
@@ -97,12 +97,12 @@ class PanTool:
 
 
 class WheelTool:
-    def __init__(self, amb_int, dir_int, too_close, too_far):
+    def __init__(self, amb_int, dif_int, too_close, too_far):
         self.total_z = 0.0
         self.too_close = too_close
         self.too_far = too_far
         self.amb_int = amb_int
-        self.dir_int = dir_int
+        self.dif_int = dif_int
 
     def zooming(self, step):
         self.total_z -= step / 10
@@ -112,9 +112,9 @@ class WheelTool:
         self.amb_int += step / 10
         self.amb_int = max(0, self.amb_int)
 
-    def change_dir(self, step):
-        self.dir_int += step / 10
-        self.dir_int = max(0, self.dir_int)
+    def change_dif(self, step):
+        self.dif_int += step / 10
+        self.dif_int = max(0, self.dif_int)
 
     def set_z(self, z):
         self.total_z = max(self.too_far, min(self.too_close, z))
@@ -336,6 +336,23 @@ class SceneWindow(QOpenGLWidget):
 
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = True
 
+        if event.key() == QtCore.Qt.Key_E:
+            (sub_obj_idx, _) = QInputDialog.getInt(
+                self, "Select Sub Object", "Object Index", len(self.scene.SUB_OBJS)
+            )
+            if sub_obj_idx >= len(self.scene.SUB_OBJS):
+                self.scene.RENDER_OBJS = self.scene.SUB_OBJS
+            else:
+                self.scene.RENDER_OBJS = self.scene.SUB_OBJS[
+                    sub_obj_idx : sub_obj_idx + 1
+                ]
+                sub_obj = self.scene.SUB_OBJS[sub_obj_idx]
+                print(sub_obj)
+                print(self.scene.MTL_INFO[sub_obj])
+
+        if event.key() == QtCore.Qt.Key_S:
+            self.scene.use_spec = not self.scene.use_spec
+
         if event.key() == QtCore.Qt.Key_Q:
             self.get_prediction()
 
@@ -350,9 +367,6 @@ class SceneWindow(QOpenGLWidget):
             self.scene.PROG["use_texture"].value = not self.scene.PROG[
                 "use_texture"
             ].value
-
-        if event.key() == QtCore.Qt.Key_E:
-            self.bring_up_entry_form()
 
         if event.key() == QtCore.Qt.Key_T:
             self.rotate = False
@@ -434,8 +448,8 @@ class SceneWindow(QOpenGLWidget):
             self.wheel_tool.change_amb(steps)
             self.scene.set_amb(self.wheel_tool.amb_int)
         elif self.directional:
-            self.wheel_tool.change_dir(steps)
-            self.scene.set_dir(self.wheel_tool.dir_int)
+            self.wheel_tool.change_dif(steps)
+            self.scene.set_dir(self.wheel_tool.dif_int)
         elif not self.rotate:
             self.wheel_tool.zooming(steps)
             self.scene.zoom(self.wheel_tool.total_z)
@@ -507,7 +521,7 @@ class SceneWindow(QOpenGLWidget):
             self.scene = self.scene_class()
             self.wheel_tool = WheelTool(
                 self.scene.PROG["amb_int"].value,
-                self.scene.PROG["dir_int"].value,
+                self.scene.PROG["dif_int"].value,
                 self.scene.TOO_CLOSE,
                 self.scene.TOO_FAR,
             )
@@ -580,7 +594,7 @@ class Window(QWidget):
             "pitch",
             "roll",
             "amb_int",
-            "dir_int",
+            "dif_int",
             "DirLight",
         ]
         for name in params:

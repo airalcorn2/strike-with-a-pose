@@ -10,46 +10,34 @@ MODELS = {
     "mapper": ClassActivationMapper,
 }
 # Order matters.
-MODEL_OBJ_AND_TEXTURE_FS = {
-    "classifier": [
-        ("interior.obj", "interior.tga"),
-        ("exterior.obj", "exterior.tga"),
-        ("glass.obj", "glass.tga"),
-    ],
-    "detector": [
-        ("interior.obj", "interior.tga"),
-        ("exterior.obj", "exterior.tga"),
-        ("glass.obj", "glass.tga"),
-    ],
-    "captioner": [("bird.obj", "bird.tga")],
-    "mapper": [
-        ("interior.obj", "interior.tga"),
-        ("exterior.obj", "exterior.tga"),
-        ("glass.obj", "glass.tga"),
-    ],
+MODEL_OBJ_AND_MTL_FS = {
+    "classifier": ("Jeep.obj", "Jeep.mtl"),
+    "detector": ("Jeep.obj", "Jeep.mtl"),
+    "captioner": ("bird.obj", "bird.mtl"),
+    "mapper": ("Jeep.obj", "Jeep.mtl"),
 }
 MODEL_INITIAL_PARAMS = {
     "classifier": {
-        "x_delta": -0.3005,
-        "y_delta": -0.2227,
-        "z_delta": -9.6000,
+        "x_delta": -0.1090,
+        "y_delta": -0.2109,
+        "z_delta": -3.8000,
         "yaw": 178.5066,
         "pitch": -4.6715,
         "roll": 12.8242,
-        "amb_int": 0.7000,
-        "dir_int": 0.7000,
-        "DirLight": (0.0000, 1.0000, 0.000),
+        "amb_int": 0.0,
+        "dif_int": 1.0,
+        "DirLight": (0.0000, 0.7071, 0.7071),
         "USE_BACKGROUND": True,
     },
     "detector": {
-        "x_delta": -0.4260,
-        "y_delta": -0.1446,
-        "z_delta": -12.9783,
+        "x_delta": 0.3552,
+        "y_delta": -0.2539,
+        "z_delta": -6.3783,
         "yaw": -159.4024,
         "pitch": -3.9317,
         "roll": -1.2106,
         "amb_int": 0.7000,
-        "dir_int": 0.7000,
+        "dif_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
         "USE_BACKGROUND": True,
     },
@@ -61,26 +49,26 @@ MODEL_INITIAL_PARAMS = {
         "pitch": -7.4264,
         "roll": 7.3828,
         "amb_int": 0.7000,
-        "dir_int": 0.7000,
+        "dif_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
         "USE_BACKGROUND": True,
     },
     "mapper": {
-        "x_delta": -0.3005,
-        "y_delta": -0.2227,
-        "z_delta": -9.6000,
+        "x_delta": -0.1090,
+        "y_delta": -0.2109,
+        "z_delta": -3.8000,
         "yaw": 178.5066,
         "pitch": -4.6715,
         "roll": 12.8242,
-        "amb_int": 0.7000,
-        "dir_int": 0.7000,
-        "DirLight": (0.0000, 1.0000, 0.000),
-        "USE_BACKGROUND": False
+        "amb_int": 0.0,
+        "dif_int": 1.0,
+        "DirLight": (0.0000, 0.7071, 0.7071),
+        "USE_BACKGROUND": True,
     },
 }
 
 MODEL_TYPE = "classifier"
 MODEL = MODELS[MODEL_TYPE]
 BACKGROUND_F = "background_{0}.jpg".format(MODEL_TYPE)
-OBJ_AND_TEXTURE_FS = MODEL_OBJ_AND_TEXTURE_FS[MODEL_TYPE]
+(OBJ_F, MTL_F) = MODEL_OBJ_AND_MTL_FS[MODEL_TYPE]
 INITIAL_PARAMS = MODEL_INITIAL_PARAMS[MODEL_TYPE]

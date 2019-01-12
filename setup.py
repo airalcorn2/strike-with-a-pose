@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="strike_with_a_pose",
-    version="0.2.0",
+    version="0.3.0",
     url="http://github.com/airalcorn2/strike-with-a-pose",
     author="Michael A. Alcorn",
     author_email="alcorma@auburn.edu",

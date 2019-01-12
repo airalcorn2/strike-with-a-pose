@@ -1,0 +1,24 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+# Source: https://free3d.com/3d-model/black-capped-chickadee-35746.html.
+
+newmtl chkd_body
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.649412 0.605490 0.577255
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd bird.tga
+
+newmtl chkd_eye
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.031373 0.009412 0.009412
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

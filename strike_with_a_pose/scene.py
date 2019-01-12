@@ -2,7 +2,6 @@ import moderngl
 import numpy as np
 import pkg_resources
 
-from objloader import Obj
 from PIL import Image, ImageOps
 from pyrr import Matrix44
 from strike_with_a_pose.settings import *
@@ -28,6 +27,134 @@ ANGLE = 2 * 8.213
 perspective = Matrix44.perspective_projection(ANGLE, RATIO, 0.1, 1000.0)
 
 
+def parse_obj_file(input_obj):
+    """Parse wavefront .obj file.
+
+    :param input_obj:
+    :return: NumPy array with shape (3 * num_faces, 8). Each row contains (1) the
+    coordinates of a vertex of a face, (2) the vertex's normal vector, and (3) the texture
+    coordinates for the vertex.
+    """
+    data = {"v": [], "vn": [], "vt": []}
+    packed_arrays = {}
+    obj_f = open(input_obj)
+    current_mtl = None
+    min_vec = np.full(3, np.inf)
+    max_vec = np.full(3, -np.inf)
+    empty_vt = np.array([0.0, 0.0, 0.0])
+    for line in obj_f:
+        line = line.strip()
+        if line == "":
+            continue
+
+        parts = line.split()
+        elem_type = parts[0]
+        if elem_type in data:
+            vals = np.array(parts[1:4], dtype=np.float)
+            if elem_type == "v":
+                min_vec = np.minimum(min_vec, vals)
+                max_vec = np.maximum(max_vec, vals)
+            elif elem_type == "vn":
+                vals /= np.linalg.norm(vals)
+            elif elem_type == "vt":
+                if len(vals) < 3:
+                    vals = np.array(list(vals) + [0.0], dtype=np.float)
+
+            data[elem_type].append(vals)
+        elif elem_type == "f":
+            f = parts[1:4]
+            for fv in f:
+                (v, vt, vn) = fv.split("/")
+
+                # Convert to zero-based indexing.
+                v = int(v) - 1
+                vn = int(vn) - 1
+                vt = int(vt) - 1 if vt else -1
+
+                if vt == -1:
+                    row = np.concatenate((data["v"][v], data["vn"][vn], empty_vt))
+                else:
+                    row = np.concatenate((data["v"][v], data["vn"][vn], data["vt"][vt]))
+                packed_arrays[current_mtl].append(row)
+        elif elem_type == "usemtl":
+            current_mtl = parts[1]
+            if current_mtl not in packed_arrays:
+                packed_arrays[current_mtl] = []
+        elif elem_type == "l":
+            if current_mtl in packed_arrays:
+                packed_arrays.pop(current_mtl)
+
+    max_pos_vec = max_vec - min_vec
+    max_pos_val = max(max_pos_vec)
+    max_pos_vec_norm = max_pos_vec / max_pos_val
+    for (sub_obj, packed_array) in packed_arrays.items():
+        # z-coordinate of texture is always zero (if present).
+        packed_array = np.stack(packed_array)[:, :8]
+        original_vertices = packed_array[:, :3].copy()
+
+        # All coordinates greater than or equal to zero.
+        original_vertices -= min_vec
+        # All coordinates between zero and one.
+        original_vertices /= max_pos_val
+        # All coordinates between zero and two.
+        original_vertices *= 2
+        # All coordinates between negative one and positive one with the center of object
+        # at (0, 0, 0).
+        original_vertices -= max_pos_vec_norm
+
+        packed_array[:, :3] = original_vertices
+        packed_arrays[sub_obj] = packed_array
+
+    return packed_arrays
+
+
+def parse_mtl_file(input_mtl):
+    """Parse Wavefront .mtl file.
+
+    :param input_mtl:
+    :return:
+    """
+    vector_elems = {"Ka", "Kd", "Ks"}
+    float_elems = {"Ns", "Ni", "d"}
+    int_elems = {"illum"}
+    current_mtl = None
+    mtl_infos = {}
+    mtl_f = open(input_mtl)
+    sub_objs = []
+    for line in mtl_f:
+        line = line.strip()
+        if line == "":
+            continue
+
+        parts = line.split()
+        elem_type = parts[0]
+        if elem_type in vector_elems:
+            vals = np.array(parts[1:4], dtype=np.float)
+            mtl_infos[current_mtl][elem_type] = vals
+        elif elem_type in float_elems:
+            mtl_infos[current_mtl][elem_type] = float(parts[1])
+        elif elem_type in int_elems:
+            mtl_infos[current_mtl][elem_type] = int(parts[1])
+        elif elem_type == "newmtl":
+            current_mtl = parts[1]
+            sub_objs.append(current_mtl)
+            mtl_infos[current_mtl] = {"d": 1.0}
+        elif elem_type == "map_Kd":
+            mtl_infos[current_mtl]["map_Kd"] = parts[1]
+
+    sub_objs.sort()
+    sub_objs.reverse()
+    non_trans = [sub_obj for sub_obj in sub_objs if mtl_infos[sub_obj]["d"] == 1.0]
+    trans = [
+        (sub_obj, mtl_infos[sub_obj]["d"])
+        for sub_obj in sub_objs
+        if mtl_infos[sub_obj]["d"] < 1.0
+    ]
+    trans.sort(key=lambda x: x[1], reverse=True)
+    sub_objs = non_trans + [sub_obj for (sub_obj, d) in trans]
+    return (mtl_infos, sub_objs)
+
+
 class Scene:
     WINDOW_SIZE = (WIDTH, HEIGHT)
     wnd = None
@@ -51,6 +178,7 @@ class Scene:
                 in vec3 in_norm;
                 in vec2 in_text;
 
+                out vec3 v_pos;
                 out vec3 v_norm;
                 out vec2 v_text;
                 out vec3 v_light;
@@ -58,11 +186,13 @@ class Scene:
                 void main() {
                     if (mode == 0) {
                         gl_Position = Mvp * vec4((R * in_vert) + vec3(Pan, Zoom), 1.0);
+                        v_pos = in_vert;
                         v_norm = R * in_norm;
                         v_text = in_text;
                         v_light = L * DirLight;
                     } else {
                         gl_Position = vec4(in_vert, 1.0);
+                        v_pos = in_vert;
                         v_norm = in_norm;
                         v_text = in_text;
                     }
@@ -71,13 +201,24 @@ class Scene:
             fragment_shader="""
                 #version 330
 
-                uniform float dir_int;
                 uniform float amb_int;
+                uniform float dif_int;
+                uniform vec3 cam_pos;
+
                 uniform sampler2D Texture;
                 uniform int mode;
                 uniform bool use_texture;
+                uniform bool has_image;
+
                 uniform vec3 box_rgb;
 
+                uniform vec3 amb_rgb;
+                uniform vec3 dif_rgb;
+                uniform vec3 spc_rgb;
+                uniform float spec_exp;
+                uniform float trans;
+
+                in vec3 v_pos;
                 in vec3 v_norm;
                 in vec2 v_text;
                 in vec3 v_light;
@@ -86,11 +227,25 @@ class Scene:
 
                 void main() {
                     if (mode == 0) {
-                        float lum = clamp(dot(v_light, v_norm), 0.0, 1.0) * dir_int + amb_int;
+                        float dif = clamp(dot(v_light, v_norm), 0.0, 1.0) * dif_int;
                         if (use_texture) {
-                            f_color = vec4(texture(Texture, v_text).rgb * lum, texture(Texture, v_text).a);
+                            vec3 surface_rgb = dif_rgb;
+                            if (has_image) {
+                                surface_rgb = texture(Texture, v_text).rgb;
+                            }
+                            vec3 ambient = amb_int * amb_rgb * surface_rgb;
+                            vec3 diffuse = dif * dif_rgb * surface_rgb;
+                            float spec = 0.0;
+                            if (dif > 0.0) {
+                                vec3 reflected = reflect(-v_light, v_norm);
+                                vec3 surface_to_camera = normalize(cam_pos - v_pos);
+                                spec = pow(clamp(dot(surface_to_camera, reflected), 0.0, 1.0), spec_exp);
+                            }
+                            vec3 specular = spec * spc_rgb * surface_rgb;
+                            vec3 linear = ambient + diffuse + specular;
+                            f_color = vec4(linear, trans);
                         } else {
-                            f_color = vec4(vec3(1.0, 1.0, 1.0) * lum, 1.0);
+                            f_color = vec4(vec3(1.0, 1.0, 1.0) * dif + amb_int, 1.0);
                         }
                     } else if (mode == 1) {
                         f_color = vec4(texture(Texture, v_text).rgba);
@@ -105,16 +260,23 @@ class Scene:
         self.CTX.enable(moderngl.BLEND)
         self.PROG["mode"].value = 0
         self.PROG["use_texture"].value = True
+        self.PROG["has_image"].value = False
         self.PROG["Pan"].value = (0, 0)
         self.PROG["Zoom"].value = 0
         self.PROG["DirLight"].value = (0, 1, 0)
-        self.PROG["dir_int"].value = 0.7
+        self.PROG["dif_int"].value = 0.7
         self.PROG["amb_int"].value = 0.5
+        self.PROG["cam_pos"].value = tuple(EYE)
         self.PROG["Mvp"].write((perspective * LOOK_AT).astype("f4").tobytes())
         self.R = np.eye(3)
         self.PROG["R"].write(self.R.astype("f4").tobytes())
         self.L = np.eye(3)
         self.PROG["L"].write(self.L.astype("f4").tobytes())
+        self.PROG["amb_rgb"].value = (1.0, 1.0, 1.0)
+        self.PROG["dif_rgb"].value = (1.0, 1.0, 1.0)
+        self.PROG["spc_rgb"].value = (1.0, 1.0, 1.0)
+        self.PROG["spec_exp"].value = 0.0
+        self.use_spec = True
 
         self.CAMERA_DISTANCE = CAMERA_DISTANCE
         self.TOO_CLOSE = self.CAMERA_DISTANCE - 2.0
@@ -182,50 +344,40 @@ class Scene:
             )
 
         # Load vertices and textures.
-        VAOS = []
-        TEXTURES = []
-        (min_val, abs_max_val, max_val) = (None, None, None)
-        for (OBJ_F, TEXTURE_F) in OBJ_AND_TEXTURE_FS:
-            input_obj = SCENE_DIR + OBJ_F
-            obj = Obj.open(input_obj)
-            packed_array = obj.to_array()[:, :-1]
+        VAOS = {}
+        TEXTURES = {}
+        packed_arrays = parse_obj_file(SCENE_DIR + OBJ_F)
+        (mtl_infos, sub_objs) = parse_mtl_file(SCENE_DIR + MTL_F)
+        SUB_OBJS = []
+        for sub_obj in sub_objs:
+            if sub_obj not in packed_arrays:
+                print("Skipping {0}.".format(sub_obj))
+                continue
 
-            # Normalize vertices into a unit cube centered at zero.
-            original_vertices = packed_array[:, :3].copy()
-
-            if min_val is None:
-                min_val = original_vertices.min(axis=0)
-
-            original_vertices -= min_val
-
-            if abs_max_val is None:
-                abs_max_val = np.abs(original_vertices).max()
-
-            original_vertices /= abs_max_val
-            original_vertices *= 2
-
-            if max_val is None:
-                max_val = original_vertices.max(axis=0)
-
-            original_vertices -= max_val / 2
-            packed_array[:, :3] = original_vertices
-
+            SUB_OBJS.append(sub_obj)
+            packed_array = packed_arrays[sub_obj]
             vbo = self.CTX.buffer(packed_array.flatten().astype("f4").tobytes())
             vao = self.CTX.simple_vertex_array(
                 self.PROG, vbo, "in_vert", "in_norm", "in_text"
             )
-            VAOS.append(vao)
+            VAOS[sub_obj] = vao
 
-            texture_f = SCENE_DIR + "{1}".format(SCENE_DIR, TEXTURE_F)
-            texture_img = (
-                Image.open(texture_f).transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA")
-            )
-            TEXTURE = self.CTX.texture(texture_img.size, 4, texture_img.tobytes())
-            TEXTURE.build_mipmaps()
-            TEXTURES.append(TEXTURE)
+            if "map_Kd" in mtl_infos[sub_obj]:
+                texture_f = SCENE_DIR + mtl_infos[sub_obj]["map_Kd"]
+                texture_img = (
+                    Image.open(texture_f)
+                    .transpose(Image.FLIP_TOP_BOTTOM)
+                    .convert("RGBA")
+                )
+                TEXTURE = self.CTX.texture(texture_img.size, 4, texture_img.tobytes())
+                TEXTURE.build_mipmaps()
+                TEXTURES[sub_obj] = TEXTURE
 
+        self.SUB_OBJS = SUB_OBJS
+        self.RENDER_OBJS = self.SUB_OBJS
         self.VAOS = VAOS
         self.TEXTURES = TEXTURES
+        self.MTL_INFO = mtl_infos
 
     def render(self):
         self.CTX.viewport = self.wnd.viewport
@@ -243,11 +395,23 @@ class Scene:
         else:
             self.CTX.clear(R, G, B)
 
-        for (i, VAO) in enumerate(self.VAOS):
+        for SUB_OBJ in self.RENDER_OBJS:
             if self.PROG["use_texture"].value:
-                self.TEXTURES[i].use()
+                self.PROG["amb_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Ka"])
+                self.PROG["dif_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Kd"])
+                if self.use_spec:
+                    self.PROG["spc_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Ks"])
+                    self.PROG["spec_exp"].value = self.MTL_INFO[SUB_OBJ]["Ns"]
+                else:
+                    self.PROG["spc_rgb"].value = (0.0, 0.0, 0.0)
 
-            VAO.render()
+                self.PROG["trans"].value = self.MTL_INFO[SUB_OBJ]["d"]
+                if SUB_OBJ in self.TEXTURES:
+                    self.PROG["has_image"].value = True
+                    self.TEXTURES[SUB_OBJ].use()
+
+            self.VAOS[SUB_OBJ].render()
+            self.PROG["has_image"].value = False
 
         self.MODEL.render()
 
@@ -261,7 +425,7 @@ class Scene:
         self.PROG["amb_int"].value = new_int
 
     def set_dir(self, new_int):
-        self.PROG["dir_int"].value = new_int
+        self.PROG["dif_int"].value = new_int
 
     def gen_rotation_matrix_from_angle_axis(self, theta, axis):
         # See: https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle.
@@ -350,7 +514,7 @@ class Scene:
             ("pitch", np.degrees(pitch)),
             ("roll", np.degrees(roll)),
             ("amb_int", self.PROG["amb_int"].value),
-            ("dir_int", self.PROG["dir_int"].value),
+            ("dif_int", self.PROG["dif_int"].value),
             (
                 "DirLight",
                 tuple(np.dot(self.L.T, np.array(self.PROG["DirLight"].value))),
@@ -372,7 +536,7 @@ class Scene:
         ).T
         self.PROG["R"].write(self.R.astype("f4").tobytes())
         self.PROG["amb_int"].value = params["amb_int"]
-        self.PROG["dir_int"].value = params["dir_int"]
+        self.PROG["dif_int"].value = params["dif_int"]
         self.PROG["DirLight"].value = params["DirLight"]
         self.L = np.eye(3)
         self.PROG["L"].write(self.L.astype("f4").tobytes())

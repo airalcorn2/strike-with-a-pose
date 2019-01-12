@@ -8,7 +8,7 @@ This is the companion tool to the paper:
 
 > [Michael A. Alcorn](https://sites.google.com/view/michaelaalcorn), Qi Li, Zhitao Gong, Chengfei Wang, Long Mai, Wei-Shinn Ku, and [Anh Nguyen](http://anhnguyen.me). [Strike (with) a pose: Neural networks are easily fooled by strange poses of familiar objects](https://arxiv.org/abs/1811.11553). arXiv 1811.11553. 2018.
 
- The tool allows you to generate adversarial poses of objects with a graphical user interface. Please note that the included jeep object (freely available [here](https://free3d.com/3d-model/jeep-10771.html)) does not meet the realism standards set in the paper. Unfortunately, the school bus object shown in the GIF is proprietary and cannot be distributed with the tool. A web port of the tool (created by [Zhitao Gong](https://github.com/gongzhitaao)) can be found [here](https://airalcorn2.github.io/strike-with-a-pose/).
+ The tool allows you to generate adversarial poses of objects with a graphical user interface. Please note that the included jeep object does not meet the realism standards set in the paper. Unfortunately, the school bus object shown in the GIF is proprietary and cannot be distributed with the tool. A browser port of the tool (created by [Zhitao Gong](https://github.com/gongzhitaao)) can be found [here](https://airalcorn2.github.io/strike-with-a-pose/).
 
  If you use this tool for your own research, please cite:
 
@@ -90,7 +90,7 @@ app.run_gui()
 
 Users can test their own objects and backgrounds in Strike (With) A Pose by:
 1. Adding the appropriate files to the `scene_files/` directory.
-2. Modifying the `BACKGROUND_F` and `OBJ_AND_TEXTURE_FS` variables in  [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
+2. Modifying the `BACKGROUND_F`, `OBJ_F`, and `MTL_F` variables in  [`settings.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/strike_with_a_pose/settings.py) accordingly.
 3. Running the following command inside the `strike-with-a-pose/` directory:
 
 ```bash
