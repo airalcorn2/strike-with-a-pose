@@ -3,6 +3,7 @@
 import os
 import pickle
 import pkg_resources
+import string
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -157,8 +158,12 @@ class ImageCaptioner:
 
                 sampled_caption.append(word)
 
-            sentence = " ".join(sampled_caption[:-1]).capitalize()
-            sentence += sampled_caption[-1]
+            if sampled_caption[-1] in string.punctuation:
+                sentence = " ".join(sampled_caption[:-1]).capitalize()
+                sentence += sampled_caption[-1]
+            else:
+                sentence = " ".join(sampled_caption).capitalize()
+
             self.img_caption.setText(sentence + "<br>")
 
     def render(self):
