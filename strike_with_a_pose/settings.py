@@ -1,5 +1,5 @@
 from strike_with_a_pose.image_classifier import ImageClassifier
-from strike_with_a_pose.obejct_detector import ObjectDetector
+from strike_with_a_pose.object_detector import ObjectDetector
 from strike_with_a_pose.image_captioner import ImageCaptioner
 from strike_with_a_pose.class_activation_mapper import ClassActivationMapper
 

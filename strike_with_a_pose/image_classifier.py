@@ -19,7 +19,7 @@ TRUE_CLASS = 609
 class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
-        self.net = models.inception_v3(pretrained=True)
+        self.net = models.inception_v3(pretrained=True).to(DEVICE)
         self.net.eval()
         for param in self.net.parameters():
             param.requires_grad = False
