@@ -31,9 +31,9 @@ def parse_obj_file(input_obj):
     """Parse wavefront .obj file.
 
     :param input_obj:
-    :return: NumPy array with shape (3 * num_faces, 8). Each row contains (1) the
-    coordinates of a vertex of a face, (2) the vertex's normal vector, and (3) the texture
-    coordinates for the vertex.
+    :return: dictionary of NumPy arrays with shape (3 * num_faces, 8). Each row contains:
+    (1) the coordinates of a vertex of a face, (2) the vertex's normal vector, and (3) the
+    texture coordinates for the vertex. Every three rows correspond to a face.
     """
     data = {"v": [], "vn": [], "vt": []}
     packed_arrays = {}
@@ -75,6 +75,7 @@ def parse_obj_file(input_obj):
                     row = np.concatenate((data["v"][v], data["vn"][vn], empty_vt))
                 else:
                     row = np.concatenate((data["v"][v], data["vn"][vn], data["vt"][vt]))
+
                 packed_arrays[current_mtl].append(row)
         elif elem_type == "usemtl":
             current_mtl = parts[1]
@@ -171,7 +172,7 @@ class Scene:
                 uniform mat3 R;
                 uniform mat3 L;
                 uniform vec3 DirLight;
-                uniform mat4 Mvp;
+                uniform mat4 VP;
                 uniform int mode;
 
                 in vec3 in_vert;
@@ -185,7 +186,7 @@ class Scene:
 
                 void main() {
                     if (mode == 0) {
-                        gl_Position = Mvp * vec4((R * in_vert) + vec3(Pan, Zoom), 1.0);
+                        gl_Position = VP * vec4((R * in_vert) + vec3(Pan, Zoom), 1.0);
                         v_pos = in_vert;
                         v_norm = R * in_norm;
                         v_text = in_text;
@@ -267,7 +268,7 @@ class Scene:
         self.PROG["dif_int"].value = 0.7
         self.PROG["amb_int"].value = 0.5
         self.PROG["cam_pos"].value = tuple(EYE)
-        self.PROG["Mvp"].write((perspective * LOOK_AT).astype("f4").tobytes())
+        self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
         self.R = np.eye(3)
         self.PROG["R"].write(self.R.astype("f4").tobytes())
         self.L = np.eye(3)
