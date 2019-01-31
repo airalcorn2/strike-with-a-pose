@@ -336,6 +336,9 @@ class SceneWindow(QOpenGLWidget):
 
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = True
 
+        if event.key() == QtCore.Qt.Key_O:
+            self.scene.RENDER_OBJ = not self.scene.RENDER_OBJ
+
         if event.key() == QtCore.Qt.Key_E:
             (sub_obj_idx, _) = QInputDialog.getInt(
                 self, "Select Sub Object", "Object Index", len(self.scene.SUB_OBJS)

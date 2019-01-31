@@ -376,6 +376,7 @@ class Scene:
 
         self.SUB_OBJS = SUB_OBJS
         self.RENDER_OBJS = self.SUB_OBJS
+        self.RENDER_OBJ = True
         self.VAOS = VAOS
         self.TEXTURES = TEXTURES
         self.MTL_INFO = mtl_infos
@@ -396,23 +397,24 @@ class Scene:
         else:
             self.CTX.clear(R, G, B)
 
-        for SUB_OBJ in self.RENDER_OBJS:
-            if self.PROG["use_texture"].value:
-                self.PROG["amb_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Ka"])
-                self.PROG["dif_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Kd"])
-                if self.use_spec:
-                    self.PROG["spc_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Ks"])
-                    self.PROG["spec_exp"].value = self.MTL_INFO[SUB_OBJ]["Ns"]
-                else:
-                    self.PROG["spc_rgb"].value = (0.0, 0.0, 0.0)
+        if self.RENDER_OBJ:
+            for SUB_OBJ in self.RENDER_OBJS:
+                if self.PROG["use_texture"].value:
+                    self.PROG["amb_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Ka"])
+                    self.PROG["dif_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Kd"])
+                    if self.use_spec:
+                        self.PROG["spc_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Ks"])
+                        self.PROG["spec_exp"].value = self.MTL_INFO[SUB_OBJ]["Ns"]
+                    else:
+                        self.PROG["spc_rgb"].value = (0.0, 0.0, 0.0)
 
-                self.PROG["trans"].value = self.MTL_INFO[SUB_OBJ]["d"]
-                if SUB_OBJ in self.TEXTURES:
-                    self.PROG["has_image"].value = True
-                    self.TEXTURES[SUB_OBJ].use()
+                    self.PROG["trans"].value = self.MTL_INFO[SUB_OBJ]["d"]
+                    if SUB_OBJ in self.TEXTURES:
+                        self.PROG["has_image"].value = True
+                        self.TEXTURES[SUB_OBJ].use()
 
-            self.VAOS[SUB_OBJ].render()
-            self.PROG["has_image"].value = False
+                self.VAOS[SUB_OBJ].render()
+                self.PROG["has_image"].value = False
 
         self.MODEL.render()
 
