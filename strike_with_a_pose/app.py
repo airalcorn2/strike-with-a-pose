@@ -258,6 +258,8 @@ class SceneWindow(QOpenGLWidget):
         self.directional = False
         self.live = False
 
+        self.screenshot = 0
+
     def fill_entry_form(self):
         params = self.scene.get_params()
         for (name, value) in params:
@@ -335,6 +337,9 @@ class SceneWindow(QOpenGLWidget):
             QtCore.QCoreApplication.instance().quit()
 
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = True
+
+        if event.key() == QtCore.Qt.Key_C:
+            self.capture_screenshot()
 
         if event.key() == QtCore.Qt.Key_O:
             self.scene.RENDER_OBJ = not self.scene.RENDER_OBJ
@@ -439,6 +444,13 @@ class SceneWindow(QOpenGLWidget):
         pil_im = pil_im.resize(self.scene.WINDOW_SIZE)
 
         self.model.predict(pil_im)
+
+    def capture_screenshot(self):
+        buffer = QtCore.QBuffer()
+        buffer.open(QtCore.QIODevice.ReadWrite)
+        qimage = self.grabFramebuffer()
+        result = qimage.save("screenshot_{0}.png".format(str(self.screenshot)).zfill(2))
+        self.screenshot += 1
 
     def keyReleaseEvent(self, event):
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = False
