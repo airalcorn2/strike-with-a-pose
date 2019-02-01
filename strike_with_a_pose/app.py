@@ -24,6 +24,7 @@ fmt.setVersion(3, 3)
 fmt.setProfile(QSurfaceFormat.CoreProfile)
 fmt.setSwapInterval(1)
 fmt.setDepthBufferSize(24)
+fmt.setSamples(3)
 QSurfaceFormat.setDefaultFormat(fmt)
 
 
