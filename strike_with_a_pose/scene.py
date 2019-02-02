@@ -265,10 +265,10 @@ class Scene:
         self.PROG["dif_int"].value = 0.7
         self.PROG["amb_int"].value = 0.5
         self.PROG["cam_pos"].value = tuple(EYE)
-        self.viewing_angle = 8.213
-        self.TAN_ANGLE = np.tan(self.viewing_angle * np.pi / 180.0)
+        self.view_angle = 8.213
+        self.TAN_ANGLE = np.tan(self.view_angle * np.pi / 180.0)
         perspective = Matrix44.perspective_projection(
-            2 * self.viewing_angle, RATIO, 0.1, 1000.0
+            2 * self.view_angle, RATIO, 0.1, 1000.0
         )
         self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
         self.R = np.eye(3)
@@ -431,6 +431,14 @@ class Scene:
     def set_dir(self, new_int):
         self.PROG["dif_int"].value = new_int
 
+    def adjust_viewing_angle(self, new_angle):
+        self.view_angle = new_angle
+        self.TAN_ANGLE = np.tan(self.view_angle * np.pi / 180.0)
+        perspective = Matrix44.perspective_projection(
+            2 * self.view_angle, RATIO, 0.1, 1000.0
+        )
+        self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
+
     def gen_rotation_matrix_from_angle_axis(self, theta, axis):
         # See: https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle.
         c = np.cos(theta)
@@ -523,20 +531,17 @@ class Scene:
                 "DirLight",
                 tuple(np.dot(self.L.T, np.array(self.PROG["DirLight"].value))),
             ),
-            ("viewing_angle", self.viewing_angle),
+            ("view_angle", self.view_angle),
         ]
         return params
 
     def set_params(self, params):
-        self.viewing_angle = params["viewing_angle"]
-        self.TAN_ANGLE = np.tan(self.viewing_angle * np.pi / 180.0)
-        perspective = Matrix44.perspective_projection(
-            2 * self.viewing_angle, RATIO, 0.1, 1000.0
-        )
-        self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
+        self.adjust_viewing_angle(params["view_angle"])
+        self.pan((params["x_delta"], params["y_delta"]))
+        self.zoom(params["z_delta"])
+        self.set_amb(params["amb_int"])
+        self.set_dir(params["dif_int"])
 
-        self.PROG["Pan"].value = (params["x_delta"], params["y_delta"])
-        self.PROG["Zoom"].value = params["z_delta"]
         for rot in ["yaw", "pitch", "roll"]:
             rads = np.radians(params[rot])
             rads_x = np.cos(rads)
@@ -547,8 +552,6 @@ class Scene:
             params["yaw"], params["pitch"], params["roll"]
         ).T
         self.PROG["R"].write(self.R.astype("f4").tobytes())
-        self.PROG["amb_int"].value = params["amb_int"]
-        self.PROG["dif_int"].value = params["dif_int"]
         self.PROG["DirLight"].value = params["DirLight"]
         self.L = np.eye(3)
         self.PROG["L"].write(self.L.astype("f4").tobytes())

@@ -98,12 +98,25 @@ class PanTool:
 
 
 class WheelTool:
-    def __init__(self, amb_int, dif_int, too_close, too_far):
+    def __init__(self, amb_int, dif_int, too_close, too_far, view_angle):
         self.total_z = 0.0
         self.too_close = too_close
         self.too_far = too_far
         self.amb_int = amb_int
         self.dif_int = dif_int
+        self.view_angle = view_angle
+
+    def get_amb(self):
+        return self.amb_int
+
+    def get_dif(self):
+        return self.dif_int
+
+    def get_zoom(self):
+        return self.total_z
+
+    def get_viewing_angle(self):
+        return self.view_angle
 
     def zooming(self, step):
         self.total_z -= step / 10
@@ -116,6 +129,10 @@ class WheelTool:
     def change_dif(self, step):
         self.dif_int += step / 10
         self.dif_int = max(0, self.dif_int)
+
+    def change_viewing_angle(self, step):
+        self.view_angle += step / 10
+        self.view_angle = max(0, min(self.view_angle, 90))
 
     def set_z(self, z):
         self.total_z = max(self.too_far, min(self.too_close, z))
@@ -254,10 +271,24 @@ class SceneWindow(QOpenGLWidget):
         self.wheel_tool = None
         self.rotate_tool = RotateTool(self.wnd.size[0], self.wnd.size[1])
 
-        self.rotate = False
-        self.ambient = False
-        self.directional = False
         self.live = False
+
+        self.mode = "translate"
+        self.mode_names = {
+            "translate": "Translate",
+            "rotate": "Rotate",
+            "ambient": "Ambient Light",
+            "directional": "Directional Light",
+            "viewing": "Viewing Angle",
+        }
+        self.mode_keys = {
+            QtCore.Qt.Key_T: "translate",
+            QtCore.Qt.Key_R: "rotate",
+            QtCore.Qt.Key_A: "ambient",
+            QtCore.Qt.Key_D: "directional",
+            QtCore.Qt.Key_V: "viewing",
+        }
+        self.mode_things = {"rotate": "obj", "directional": "light"}
 
         self.screenshot = 0
 
@@ -310,7 +341,7 @@ class SceneWindow(QOpenGLWidget):
                 self.z_info = z_info
 
         dist = np.abs(self.scene.CAMERA_DISTANCE - params["z_delta"])
-        new_tan = np.tan(params["viewing_angle"] * np.pi / 180.0)
+        new_tan = np.tan(params["view_angle"] * np.pi / 180.0)
         max_trans = dist * new_tan
         for trans in ["x_delta", "y_delta"]:
             if not (-max_trans <= params[trans] <= max_trans):
@@ -334,19 +365,22 @@ class SceneWindow(QOpenGLWidget):
         self.fill_entry_form()
 
     def keyPressEvent(self, event):
+
+        key = event.key()
+
         # Quit when ESC is pressed
-        if event.key() == QtCore.Qt.Key_Escape:
+        if key == QtCore.Qt.Key_Escape:
             QtCore.QCoreApplication.instance().quit()
 
         self.wnd.keys[event.nativeVirtualKey() & 0xFF] = True
 
-        if event.key() == QtCore.Qt.Key_C:
+        if key == QtCore.Qt.Key_C:
             self.capture_screenshot()
 
-        if event.key() == QtCore.Qt.Key_O:
+        if key == QtCore.Qt.Key_O:
             self.scene.RENDER_OBJ = not self.scene.RENDER_OBJ
 
-        if event.key() == QtCore.Qt.Key_E:
+        if key == QtCore.Qt.Key_E:
             (sub_obj_idx, _) = QInputDialog.getInt(
                 self, "Select Sub Object", "Object Index", len(self.scene.SUB_OBJS)
             )
@@ -360,74 +394,31 @@ class SceneWindow(QOpenGLWidget):
                 print(sub_obj)
                 print(self.scene.MTL_INFO[sub_obj])
 
-        if event.key() == QtCore.Qt.Key_S:
+        if key == QtCore.Qt.Key_S:
             self.scene.use_spec = not self.scene.use_spec
 
-        if event.key() == QtCore.Qt.Key_Q:
+        if key == QtCore.Qt.Key_Q:
             self.get_prediction()
 
-        if event.key() == QtCore.Qt.Key_L:
+        if key == QtCore.Qt.Key_L:
             self.live = not self.live
 
-        if event.key() == QtCore.Qt.Key_B:
+        if key == QtCore.Qt.Key_B:
             self.scene.USE_BACKGROUND = not self.scene.USE_BACKGROUND
             self.model.clear()
 
-        if event.key() == QtCore.Qt.Key_X:
+        if key == QtCore.Qt.Key_X:
             self.scene.PROG["use_texture"].value = not self.scene.PROG[
                 "use_texture"
             ].value
 
-        if event.key() == QtCore.Qt.Key_T:
-            self.rotate = False
-            self.ambient = False
-            self.directional = False
+        if key in self.mode_keys:
+            self.mode = self.mode_keys[key]
             self.mode_text.setText(
-                """<p align="center"><strong>Translate</strong></p>"""
+                """<p align="center"><strong>{0}</strong></p>""".format(
+                    self.mode_names[self.mode]
+                )
             )
-
-        if event.key() == QtCore.Qt.Key_R:
-            if self.rotate:
-                self.rotate = False
-                self.mode_text.setText(
-                    """<p align="center"><strong>Translate</strong></p>"""
-                )
-            else:
-                self.rotate = True
-                self.mode_text.setText(
-                    """<p align="center"><strong>Rotate</strong></p>"""
-                )
-            self.ambient = False
-            self.directional = False
-
-        if event.key() == QtCore.Qt.Key_A:
-            if self.ambient:
-                self.ambient = False
-                self.mode_text.setText(
-                    """<p align="center"><strong>Translate</strong></p>"""
-                )
-            else:
-                self.ambient = True
-                self.mode_text.setText(
-                    """<p align="center"><strong>Ambient Light</strong></p>"""
-                )
-
-            self.rotate = False
-            self.directional = False
-
-        if event.key() == QtCore.Qt.Key_D:
-            if self.directional:
-                self.directional = False
-                self.mode_text.setText(
-                    """<p align="center"><strong>Translate</strong></p>"""
-                )
-            else:
-                self.directional = True
-                self.mode_text.setText(
-                    """<p align="center"><strong>Directional Light</strong></p>"""
-                )
-            self.rotate = False
-            self.ambient = False
 
     def get_prediction(self):
         # See: https://stackoverflow.com/questions/1733096/convert-pyqt-to-pil-image.
@@ -460,89 +451,116 @@ class SceneWindow(QOpenGLWidget):
     def wheelEvent(self, evt):
         # See: http://doc.qt.io/qt-5/qwheelevent.html#angleDelta
         # and: https://wiki.qt.io/Smooth_Zoom_In_QGraphicsView.
-        steps = evt.angleDelta().y() / (8 * 15)
-        if self.ambient:
-            self.wheel_tool.change_amb(steps)
-            self.scene.set_amb(self.wheel_tool.amb_int)
-        elif self.directional:
-            self.wheel_tool.change_dif(steps)
-            self.scene.set_dir(self.wheel_tool.dif_int)
-        elif not self.rotate:
-            self.wheel_tool.zooming(steps)
-            self.scene.zoom(self.wheel_tool.total_z)
+        mode = self.mode
+        if mode in self.wheel_scene_funcs:
+            steps = evt.angleDelta().y() / (8 * 15)
+            self.wheel_update_funcs[mode](steps)
+            self.wheel_scene_funcs[mode](self.wheel_tool_vals[mode]())
 
-        if not self.rotate:
+        if mode != "rotate":
             self.model.clear()
 
         self.update()
         self.fill_entry_form()
 
-    def mousePressEvent(self, evt):
-        if self.rotate:
-            self.rotate_tool.start_drag(evt.x(), evt.y(), "obj")
-            self.scene.rotate(self.rotate_tool.get_value("obj"))
-        elif self.directional:
-            self.rotate_tool.start_drag(evt.x(), evt.y(), "light")
-            self.scene.rotate_light(self.rotate_tool.get_value("light"))
-        elif not self.ambient:
-            self.pan_tool.start_drag(evt.x() / 512, evt.y() / 512)
-            self.scene.pan(
-                self.pan_tool.get_value(
-                    np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
+    def mouseClickDragEvent(self, evt, state):
+        mode = self.mode
+        if mode in self.click_scene_funcs:
+            (x, y) = (evt.x(), evt.y())
+            if mode == "translate":
+                (x, y) = (x / 512, y / 512)
+                if state != "stop":
+                    self.click_update_funcs[state][mode](x, y)
+                else:
+                    self.click_update_funcs[state][mode](
+                        x,
+                        y,
+                        np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z),
+                    )
+
+                self.click_scene_funcs[mode](
+                    self.pan_tool.get_value(
+                        np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
+                    )
                 )
-            )
+            else:
+                thing = self.mode_things[mode]
+                self.click_update_funcs[state][mode](x, y, thing)
+                self.click_scene_funcs[mode](self.rotate_tool.get_value(thing))
+
         self.update()
         self.fill_entry_form()
+
+    def mousePressEvent(self, evt):
+        self.mouseClickDragEvent(evt, "start")
         self.model.clear()
 
     def mouseMoveEvent(self, evt):
-        if self.rotate:
-            self.rotate_tool.dragging(evt.x(), evt.y(), "obj")
-            self.scene.rotate(self.rotate_tool.get_value("obj"))
-        elif self.directional:
-            self.rotate_tool.dragging(evt.x(), evt.y(), "light")
-            self.scene.rotate_light(self.rotate_tool.get_value("light"))
-        elif not self.ambient:
-            self.pan_tool.dragging(evt.x() / 512, evt.y() / 512)
-            self.scene.pan(
-                self.pan_tool.get_value(
-                    np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
-                )
-            )
-        self.update()
-        self.fill_entry_form()
+        self.mouseClickDragEvent(evt, "dragging")
 
     def mouseReleaseEvent(self, evt):
-        if self.rotate:
-            self.rotate_tool.stop_drag(evt.x(), evt.y(), "obj")
-            self.scene.rotate(self.rotate_tool.get_value("obj"))
-        elif self.directional:
-            self.rotate_tool.stop_drag(evt.x(), evt.y(), "light")
-            self.scene.rotate_light(self.rotate_tool.get_value("light"))
-        elif not (self.ambient or self.directional):
-            self.pan_tool.stop_drag(
-                evt.x() / 512,
-                evt.y() / 512,
-                np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z),
-            )
-            self.scene.pan(
-                self.pan_tool.get_value(
-                    np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
-                )
-            )
-        self.update()
-        self.fill_entry_form()
+        self.mouseClickDragEvent(evt, "stop")
 
     def paintGL(self):
         if self.scene is None:
             self.scene = self.scene_class()
+
             self.wheel_tool = WheelTool(
                 self.scene.PROG["amb_int"].value,
                 self.scene.PROG["dif_int"].value,
                 self.scene.TOO_CLOSE,
                 self.scene.TOO_FAR,
+                self.scene.view_angle,
             )
+            (amb, dif, trans, rot, view) = (
+                "ambient",
+                "directional",
+                "translate",
+                "rotate",
+                "viewing",
+            )
+            self.wheel_update_funcs = {
+                amb: self.wheel_tool.change_amb,
+                dif: self.wheel_tool.change_dif,
+                trans: self.wheel_tool.zooming,
+                view: self.wheel_tool.change_viewing_angle,
+            }
+            self.wheel_scene_funcs = {
+                amb: self.scene.set_amb,
+                dif: self.scene.set_dir,
+                trans: self.scene.zoom,
+                view: self.scene.adjust_viewing_angle,
+            }
+            self.wheel_tool_vals = {
+                amb: self.wheel_tool.get_amb,
+                dif: self.wheel_tool.get_dif,
+                trans: self.wheel_tool.get_zoom,
+                view: self.wheel_tool.get_viewing_angle,
+            }
+
             self.pan_tool = PanTool(self.scene.TAN_ANGLE)
+            self.click_update_funcs = {
+                "start": {
+                    rot: self.rotate_tool.start_drag,
+                    dif: self.rotate_tool.start_drag,
+                    trans: self.pan_tool.start_drag,
+                },
+                "dragging": {
+                    rot: self.rotate_tool.dragging,
+                    dif: self.rotate_tool.dragging,
+                    trans: self.pan_tool.dragging,
+                },
+                "stop": {
+                    rot: self.rotate_tool.stop_drag,
+                    dif: self.rotate_tool.stop_drag,
+                    trans: self.pan_tool.stop_drag,
+                },
+            }
+            self.click_scene_funcs = {
+                rot: self.scene.rotate,
+                dif: self.scene.rotate_light,
+                trans: self.scene.pan,
+            }
 
             self.pan_tool.total_x = INITIAL_PARAMS["x_delta"]
             self.pan_tool.total_y = INITIAL_PARAMS["y_delta"]
@@ -613,7 +631,7 @@ class Window(QWidget):
             "amb_int",
             "dif_int",
             "DirLight",
-            "viewing_angle",
+            "view_angle",
         ]
         for name in params:
             # See: https://www.tutorialspoint.com/pyqt/pyqt_qlineedit_widget.htm.
