@@ -49,7 +49,7 @@ class WindowInfo:
         return not self.keys[key] and self.old_keys[key]
 
 
-class PanTool:
+class DragTool:
     def __init__(self, tan_angle):
         self.total_x = 0.0
         self.total_y = 0.0
@@ -105,6 +105,7 @@ class WheelTool:
         self.amb_int = amb_int
         self.dif_int = dif_int
         self.view_angle = view_angle
+        self.min_view_angle = view_angle
 
     def get_amb(self):
         return self.amb_int
@@ -112,13 +113,13 @@ class WheelTool:
     def get_dif(self):
         return self.dif_int
 
-    def get_zoom(self):
+    def get_z(self):
         return self.total_z
 
     def get_viewing_angle(self):
         return self.view_angle
 
-    def zooming(self, step):
+    def change_z(self, step):
         self.total_z -= step / 10
         self.total_z = max(self.too_far, min(self.too_close, self.total_z))
 
@@ -132,10 +133,13 @@ class WheelTool:
 
     def change_viewing_angle(self, step):
         self.view_angle += step / 10
-        self.view_angle = max(0, min(self.view_angle, 90))
+        self.view_angle = max(self.min_view_angle, min(self.view_angle, 90))
 
     def set_z(self, z):
         self.total_z = max(self.too_far, min(self.too_close, z))
+
+    def set_viewing_angle(self, angle):
+        self.view_angle = max(self.min_view_angle, min(angle, 90))
 
 
 class RotateTool:
@@ -267,7 +271,7 @@ class SceneWindow(QOpenGLWidget):
         self.wnd.ratio = width / height
         self.wnd.size = (width, height)
 
-        self.pan_tool = None
+        self.drag_tool = None
         self.wheel_tool = None
         self.rotate_tool = RotateTool(self.wnd.size[0], self.wnd.size[1])
 
@@ -339,6 +343,7 @@ class SceneWindow(QOpenGLWidget):
                 z_info.setWindowTitle("z_delta")
                 z_info.show()
                 self.z_info = z_info
+                return
 
         dist = np.abs(self.scene.CAMERA_DISTANCE - params["z_delta"])
         new_tan = np.tan(params["view_angle"] * np.pi / 180.0)
@@ -347,22 +352,45 @@ class SceneWindow(QOpenGLWidget):
             if not (-max_trans <= params[trans] <= max_trans):
                 trans_info = QMessageBox()
                 trans_info.setText(
-                    "{0} is capped between -{1:.4f} and {1:.4f} for a z_delta of {2:.4f}.".format(
-                        trans, max_trans, params["z_delta"]
+                    "{0} is capped between -{1:.4f} and {1:.4f} for a z_delta of {2:.4f} and a view_angle of {3:.4f}.".format(
+                        trans, max_trans, params["z_delta"], params["view_angle"]
                     )
                 )
                 trans_info.setWindowTitle(trans)
                 trans_info.show()
                 self.trans_info = trans_info
+                return
 
         self.wheel_tool.set_z(params["z_delta"])
+        self.wheel_tool.set_viewing_angle(params["view_angle"])
         params["z_delta"] = self.wheel_tool.total_z
-        self.pan_tool.set_value(params["x_delta"], params["y_delta"], dist)
-        params["x_delta"] = self.pan_tool.total_x
-        params["y_delta"] = self.pan_tool.total_y
+        self.drag_tool.set_value(params["x_delta"], params["y_delta"], dist)
+        params["x_delta"] = self.drag_tool.total_x
+        params["y_delta"] = self.drag_tool.total_y
+        self.drag_tool.tan_angle = new_tan
+        self.set_too_close()
+        self.set_min_view_angle()
 
         self.scene.set_params(params)
         self.fill_entry_form()
+
+    def set_too_close(self):
+        too_close_x = np.abs(self.drag_tool.total_x) / self.drag_tool.tan_angle
+        too_close_y = np.abs(self.drag_tool.total_y) / self.drag_tool.tan_angle
+        self.wheel_tool.too_close = self.scene.CAMERA_DISTANCE - max(
+            too_close_x, too_close_y
+        )
+
+    def set_min_view_angle(self):
+        min_angle_x = np.arctan(
+            np.abs(self.drag_tool.total_x)
+            / np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
+        )
+        min_angle_y = np.arctan(
+            np.abs(self.drag_tool.total_y)
+            / np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
+        )
+        self.wheel_tool.min_view_angle = np.degrees(max(min_angle_x, min_angle_y))
 
     def keyPressEvent(self, event):
 
@@ -460,6 +488,11 @@ class SceneWindow(QOpenGLWidget):
         if mode != "rotate":
             self.model.clear()
 
+        if mode == "viewing":
+            self.drag_tool.tan_angle = np.tan(
+                self.wheel_tool.view_angle * np.pi / 180.0
+            )
+
         self.update()
         self.fill_entry_form()
 
@@ -477,9 +510,11 @@ class SceneWindow(QOpenGLWidget):
                         y,
                         np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z),
                     )
+                    self.set_too_close()
+                    self.set_min_view_angle()
 
                 self.click_scene_funcs[mode](
-                    self.pan_tool.get_value(
+                    self.drag_tool.get_value(
                         np.abs(self.scene.CAMERA_DISTANCE - self.wheel_tool.total_z)
                     )
                 )
@@ -522,48 +557,48 @@ class SceneWindow(QOpenGLWidget):
             self.wheel_update_funcs = {
                 amb: self.wheel_tool.change_amb,
                 dif: self.wheel_tool.change_dif,
-                trans: self.wheel_tool.zooming,
+                trans: self.wheel_tool.change_z,
                 view: self.wheel_tool.change_viewing_angle,
             }
             self.wheel_scene_funcs = {
                 amb: self.scene.set_amb,
                 dif: self.scene.set_dir,
-                trans: self.scene.zoom,
+                trans: self.scene.set_z,
                 view: self.scene.adjust_viewing_angle,
             }
             self.wheel_tool_vals = {
                 amb: self.wheel_tool.get_amb,
                 dif: self.wheel_tool.get_dif,
-                trans: self.wheel_tool.get_zoom,
+                trans: self.wheel_tool.get_z,
                 view: self.wheel_tool.get_viewing_angle,
             }
 
-            self.pan_tool = PanTool(self.scene.TAN_ANGLE)
+            self.drag_tool = DragTool(self.scene.TAN_ANGLE)
             self.click_update_funcs = {
                 "start": {
                     rot: self.rotate_tool.start_drag,
                     dif: self.rotate_tool.start_drag,
-                    trans: self.pan_tool.start_drag,
+                    trans: self.drag_tool.start_drag,
                 },
                 "dragging": {
                     rot: self.rotate_tool.dragging,
                     dif: self.rotate_tool.dragging,
-                    trans: self.pan_tool.dragging,
+                    trans: self.drag_tool.dragging,
                 },
                 "stop": {
                     rot: self.rotate_tool.stop_drag,
                     dif: self.rotate_tool.stop_drag,
-                    trans: self.pan_tool.stop_drag,
+                    trans: self.drag_tool.stop_drag,
                 },
             }
             self.click_scene_funcs = {
                 rot: self.scene.rotate,
                 dif: self.scene.rotate_light,
-                trans: self.scene.pan,
+                trans: self.scene.set_xy,
             }
 
-            self.pan_tool.total_x = INITIAL_PARAMS["x_delta"]
-            self.pan_tool.total_y = INITIAL_PARAMS["y_delta"]
+            self.drag_tool.total_x = INITIAL_PARAMS["x_delta"]
+            self.drag_tool.total_y = INITIAL_PARAMS["y_delta"]
             self.wheel_tool.total_z = INITIAL_PARAMS["z_delta"]
             self.scene.set_params(INITIAL_PARAMS)
             self.fill_entry_form()

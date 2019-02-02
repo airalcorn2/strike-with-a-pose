@@ -163,8 +163,8 @@ class Scene:
             vertex_shader="""
                 #version 330
 
-                uniform vec2 Pan;
-                uniform float Zoom;
+                uniform vec2 xy;
+                uniform float z;
 
                 uniform mat3 R;
                 uniform mat3 L;
@@ -183,7 +183,7 @@ class Scene:
 
                 void main() {
                     if (mode == 0) {
-                        gl_Position = VP * vec4((R * in_vert) + vec3(Pan, Zoom), 1.0);
+                        gl_Position = VP * vec4((R * in_vert) + vec3(xy, z), 1.0);
                         v_pos = in_vert;
                         v_norm = R * in_norm;
                         v_text = in_text;
@@ -259,8 +259,8 @@ class Scene:
         self.PROG["mode"].value = 0
         self.PROG["use_texture"].value = True
         self.PROG["has_image"].value = False
-        self.PROG["Pan"].value = (0, 0)
-        self.PROG["Zoom"].value = 0
+        self.PROG["xy"].value = (0, 0)
+        self.PROG["z"].value = 0
         self.PROG["DirLight"].value = (0, 1, 0)
         self.PROG["dif_int"].value = 0.7
         self.PROG["amb_int"].value = 0.5
@@ -419,20 +419,20 @@ class Scene:
 
         self.MODEL.render()
 
-    def pan(self, deltas):
-        self.PROG["Pan"].value = deltas
+    def set_xy(self, xy):
+        self.PROG["xy"].value = xy
 
-    def zoom(self, delta):
-        self.PROG["Zoom"].value = delta
+    def set_z(self, z):
+        self.PROG["z"].value = z
 
-    def set_amb(self, new_int):
-        self.PROG["amb_int"].value = new_int
+    def set_amb(self, amb_int):
+        self.PROG["amb_int"].value = amb_int
 
-    def set_dir(self, new_int):
-        self.PROG["dif_int"].value = new_int
+    def set_dir(self, dif_int):
+        self.PROG["dif_int"].value = dif_int
 
-    def adjust_viewing_angle(self, new_angle):
-        self.view_angle = new_angle
+    def adjust_viewing_angle(self, view_angle):
+        self.view_angle = view_angle
         self.TAN_ANGLE = np.tan(self.view_angle * np.pi / 180.0)
         perspective = Matrix44.perspective_projection(
             2 * self.view_angle, RATIO, 0.1, 1000.0
@@ -514,8 +514,8 @@ class Scene:
         self.PROG["L"].write(self.L.astype("f4").tobytes())
 
     def get_params(self):
-        (x, y) = self.PROG["Pan"].value
-        z = self.PROG["Zoom"].value
+        (x, y) = self.PROG["xy"].value
+        z = self.PROG["z"].value
         (yaw, pitch, roll) = self.get_angles_from_matrix(self.R)
 
         params = [
@@ -537,8 +537,8 @@ class Scene:
 
     def set_params(self, params):
         self.adjust_viewing_angle(params["view_angle"])
-        self.pan((params["x_delta"], params["y_delta"]))
-        self.zoom(params["z_delta"])
+        self.set_xy((params["x_delta"], params["y_delta"]))
+        self.set_z(params["z_delta"])
         self.set_amb(params["amb_int"])
         self.set_dir(params["dif_int"])
 
