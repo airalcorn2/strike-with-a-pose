@@ -27,6 +27,7 @@ MODEL_INITIAL_PARAMS = {
         "amb_int": 0.0,
         "dif_int": 1.0,
         "DirLight": (0.0000, 0.7071, 0.7071),
+        "viewing_angle": 8.213,
         "USE_BACKGROUND": True,
     },
     "detector": {
@@ -51,6 +52,7 @@ MODEL_INITIAL_PARAMS = {
         "amb_int": 0.7000,
         "dif_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
+        "viewing_angle": 8.213,
         "USE_BACKGROUND": True,
     },
     "mapper": {
@@ -63,6 +65,7 @@ MODEL_INITIAL_PARAMS = {
         "amb_int": 0.0,
         "dif_int": 1.0,
         "DirLight": (0.0000, 0.7071, 0.7071),
+        "viewing_angle": 8.213,
         "USE_BACKGROUND": True,
     },
 }

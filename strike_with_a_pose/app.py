@@ -310,7 +310,8 @@ class SceneWindow(QOpenGLWidget):
                 self.z_info = z_info
 
         dist = np.abs(self.scene.CAMERA_DISTANCE - params["z_delta"])
-        max_trans = dist * self.pan_tool.tan_angle
+        new_tan = np.tan(params["viewing_angle"] * np.pi / 180.0)
+        max_trans = dist * new_tan
         for trans in ["x_delta", "y_delta"]:
             if not (-max_trans <= params[trans] <= max_trans):
                 trans_info = QMessageBox()
@@ -612,6 +613,7 @@ class Window(QWidget):
             "amb_int",
             "dif_int",
             "DirLight",
+            "viewing_angle",
         ]
         for name in params:
             # See: https://www.tutorialspoint.com/pyqt/pyqt_qlineedit_widget.htm.

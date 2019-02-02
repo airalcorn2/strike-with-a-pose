@@ -22,9 +22,6 @@ LOOK_AT = Matrix44.look_at(EYE, TARGET, UP)
 
 (WIDTH, HEIGHT) = (299, 299)
 RATIO = float(WIDTH) / float(HEIGHT)
-VIEWING_ANGLE = 8.213
-ANGLE = 2 * 8.213
-perspective = Matrix44.perspective_projection(ANGLE, RATIO, 0.1, 1000.0)
 
 
 def parse_obj_file(input_obj):
@@ -268,6 +265,11 @@ class Scene:
         self.PROG["dif_int"].value = 0.7
         self.PROG["amb_int"].value = 0.5
         self.PROG["cam_pos"].value = tuple(EYE)
+        self.viewing_angle = 8.213
+        self.TAN_ANGLE = np.tan(self.viewing_angle * np.pi / 180.0)
+        perspective = Matrix44.perspective_projection(
+            2 * self.viewing_angle, RATIO, 0.1, 1000.0
+        )
         self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
         self.R = np.eye(3)
         self.PROG["R"].write(self.R.astype("f4").tobytes())
@@ -280,9 +282,8 @@ class Scene:
         self.use_spec = True
 
         self.CAMERA_DISTANCE = CAMERA_DISTANCE
-        self.TOO_CLOSE = self.CAMERA_DISTANCE - 2.0
+        self.TOO_CLOSE = self.CAMERA_DISTANCE
         self.TOO_FAR = self.CAMERA_DISTANCE - 30.0
-        self.TAN_ANGLE = np.tan(VIEWING_ANGLE * np.pi / 180.0)
 
         # Load background.
         self.USE_BACKGROUND = False
@@ -522,10 +523,18 @@ class Scene:
                 "DirLight",
                 tuple(np.dot(self.L.T, np.array(self.PROG["DirLight"].value))),
             ),
+            ("viewing_angle", self.viewing_angle),
         ]
         return params
 
     def set_params(self, params):
+        self.viewing_angle = params["viewing_angle"]
+        self.TAN_ANGLE = np.tan(self.viewing_angle * np.pi / 180.0)
+        perspective = Matrix44.perspective_projection(
+            2 * self.viewing_angle, RATIO, 0.1, 1000.0
+        )
+        self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
+
         self.PROG["Pan"].value = (params["x_delta"], params["y_delta"])
         self.PROG["Zoom"].value = params["z_delta"]
         for rot in ["yaw", "pitch", "roll"]:
