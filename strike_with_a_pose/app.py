@@ -1,4 +1,4 @@
-# PYTHONPATH=strike_with_a_pose python -m strike_with_a_pose.app
+# PYTHONPATH=strike_with_a_pose python3 -m strike_with_a_pose.app
 
 import io
 import numpy as np
@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QInputDialog, QLabel, QLin
 from PyQt5.QtWidgets import QMessageBox, QOpenGLWidget, QPushButton, QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 from strike_with_a_pose.scene import Scene
-from strike_with_a_pose.settings import INITIAL_PARAMS, MODEL
+from strike_with_a_pose.settings import INITIAL_PARAMS, MODEL, TRUE_CLASS
 
 INSTRUCTIONS_F = pkg_resources.resource_filename(
     "strike_with_a_pose", "instructions.html"
@@ -407,6 +407,7 @@ class SceneWindow(QOpenGLWidget):
 
         if key == QtCore.Qt.Key_O:
             self.scene.RENDER_OBJ = not self.scene.RENDER_OBJ
+            self.model.clear()
 
         if key == QtCore.Qt.Key_E:
             (sub_obj_idx, _) = QInputDialog.getInt(
@@ -527,8 +528,8 @@ class SceneWindow(QOpenGLWidget):
         self.fill_entry_form()
 
     def mousePressEvent(self, evt):
-        self.mouseClickDragEvent(evt, "start")
         self.model.clear()
+        self.mouseClickDragEvent(evt, "start")
 
     def mouseMoveEvent(self, evt):
         self.mouseClickDragEvent(evt, "dragging")
@@ -604,7 +605,7 @@ class SceneWindow(QOpenGLWidget):
             self.fill_entry_form()
             self.scene.USE_BACKGROUND = INITIAL_PARAMS["USE_BACKGROUND"]
 
-            self.model = MODEL()
+            self.model = MODEL(TRUE_CLASS)
             for (name, comp) in self.model_gui_comps.items():
                 if name != "predict":
                     setattr(self.model, name, comp)
@@ -615,7 +616,6 @@ class SceneWindow(QOpenGLWidget):
             self.scene.MODEL = self.model
 
             self.scene.render()
-
             self.get_prediction()
 
         self.wnd.time = time.clock() - self.start_time

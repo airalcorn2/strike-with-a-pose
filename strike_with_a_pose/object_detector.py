@@ -2,23 +2,15 @@ import cv2
 import moderngl
 import numpy as np
 import os
-import pkg_resources
 import urllib
 
 from PIL import Image
 from PyQt5.QtWidgets import QPushButton
-
-YOLO_CLASSES = pkg_resources.resource_filename("strike_with_a_pose", "data/yolov3.txt")
-YOLO_WEIGHTS = pkg_resources.resource_filename(
-    "strike_with_a_pose", "data/yolov3.weights"
-)
-YOLO_CONFIG = pkg_resources.resource_filename("strike_with_a_pose", "data/yolov3.cfg")
-YOLO_CLASSES_F = "yolo_classes.png"
-SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
+from strike_with_a_pose.file_locations import *
 
 
 class ObjectDetector:
-    def __init__(self):
+    def __init__(self, true_class):
         self.classes = open(YOLO_CLASSES, "r").readlines()
         classes_num = len(self.classes)
 

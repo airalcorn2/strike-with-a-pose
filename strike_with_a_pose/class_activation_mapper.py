@@ -1,7 +1,6 @@
 import cv2
 import moderngl
 import numpy as np
-import pkg_resources
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -10,19 +9,14 @@ import torchvision.transforms as transforms
 from PIL import Image
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QLabel, QPushButton
-
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-IMAGENET_F = pkg_resources.resource_filename(
-    "strike_with_a_pose", "data/imagenet_classes.txt"
-)
-SCENE_DIR = pkg_resources.resource_filename("strike_with_a_pose", "scene_files/")
-TRUE_CLASS = 609
+from strike_with_a_pose.file_locations import *
 
 
 class ClassActivationMapper(nn.Module):
-    def __init__(self):
+    def __init__(self, true_class):
         super(ClassActivationMapper, self).__init__()
-        self.net = models.inception_v3(pretrained=True)
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.net = models.inception_v3(pretrained=True).to(self.device)
         self.net.eval()
         for param in self.net.parameters():
             param.requires_grad = False
@@ -32,7 +26,7 @@ class ClassActivationMapper(nn.Module):
         )
 
         self.label_map = self.load_imagenet_label_map()
-        self.true_class = TRUE_CLASS
+        self.true_class = true_class
         self.true_label = self.label_map[self.true_class]
 
         feature_params = list(self.net.parameters())[-2]
@@ -98,7 +92,7 @@ class ClassActivationMapper(nn.Module):
 
     def predict(self, image):
         with torch.no_grad():
-            image_tensor = torch.Tensor(np.array(image) / 255.0).to(DEVICE)
+            image_tensor = torch.Tensor(np.array(image) / 255.0).to(self.device)
             input_image = image_tensor.permute(2, 0, 1)
             out = self.forward(input_image)
             probs = torch.nn.functional.softmax(out, dim=1)
