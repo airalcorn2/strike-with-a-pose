@@ -40,6 +40,7 @@ MODEL_INITIAL_PARAMS = {
         "amb_int": 0.7000,
         "dif_int": 0.7000,
         "DirLight": (0.0000, 1.0000, 0.000),
+        "view_angle": 8.213,
         "USE_BACKGROUND": True,
     },
     "captioner": {
