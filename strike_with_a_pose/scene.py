@@ -125,7 +125,7 @@ def parse_mtl_file(input_mtl):
         elem_type = parts[0]
         if elem_type in vector_elems:
             vals = np.array(parts[1:4], dtype=np.float)
-            mtl_infos[current_mtl][elem_type] = vals
+            mtl_infos[current_mtl][elem_type] = tuple(vals)
         elif elem_type in float_elems:
             mtl_infos[current_mtl][elem_type] = float(parts[1])
         elif elem_type in int_elems:
@@ -402,12 +402,10 @@ class Scene:
         if self.RENDER_OBJ:
             for RENDER_OBJ in self.RENDER_OBJS:
                 if self.PROG["use_texture"].value:
-                    self.PROG["amb_rgb"].value = tuple(self.MTL_INFOS[RENDER_OBJ]["Ka"])
-                    self.PROG["dif_rgb"].value = tuple(self.MTL_INFOS[RENDER_OBJ]["Kd"])
+                    self.PROG["amb_rgb"].value = self.MTL_INFOS[RENDER_OBJ]["Ka"]
+                    self.PROG["dif_rgb"].value = self.MTL_INFOS[RENDER_OBJ]["Kd"]
                     if self.use_spec:
-                        self.PROG["spc_rgb"].value = tuple(
-                            self.MTL_INFOS[RENDER_OBJ]["Ks"]
-                        )
+                        self.PROG["spc_rgb"].value = self.MTL_INFOS[RENDER_OBJ]["Ks"]
                         self.PROG["spec_exp"].value = self.MTL_INFOS[RENDER_OBJ]["Ns"]
                     else:
                         self.PROG["spc_rgb"].value = (0.0, 0.0, 0.0)
