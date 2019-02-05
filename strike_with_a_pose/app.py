@@ -321,6 +321,7 @@ class SceneWindow(QOpenGLWidget):
         self.mode = self.TRANS
 
         self.screenshot = 0
+        self.make_prediction = True
 
     def fill_entry_form(self):
         params = self.scene.get_params()
@@ -461,7 +462,7 @@ class SceneWindow(QOpenGLWidget):
             self.scene.use_spec = not self.scene.use_spec
 
         if key == QtCore.Qt.Key_Q:
-            self.get_prediction()
+            self.make_prediction = True
 
         if key == QtCore.Qt.Key_L:
             self.live = not self.live
@@ -485,8 +486,6 @@ class SceneWindow(QOpenGLWidget):
 
     def get_prediction(self):
         # See: https://stackoverflow.com/questions/1733096/convert-pyqt-to-pil-image.
-        self.model.clear()
-
         buffer = QtCore.QBuffer()
         buffer.open(QtCore.QIODevice.ReadWrite)
         qimage = self.grabFramebuffer()
@@ -586,7 +585,6 @@ class SceneWindow(QOpenGLWidget):
         self.model.CTX = self.scene.CTX
         self.model.PROG = self.scene.PROG
         self.model.init_scene_comps()
-        self.scene.MODEL = self.model
 
     def initialize_wheel_tool(self):
         (amb, dif, z, view) = (self.AMB, self.DIF, self.TRANS, self.VIEW)
@@ -648,14 +646,18 @@ class SceneWindow(QOpenGLWidget):
             self.initialize_model()
             self.initialize_wheel_tool()
             self.initialize_drag_tools()
-            self.scene.render()
-            self.get_prediction()
 
         self.wnd.time = time.clock() - self.start_time
 
-        self.scene.render()
-        if self.live:
+        if self.make_prediction or self.live:
+            self.model.clear()
+            self.scene.render()
             self.get_prediction()
+            self.make_prediction = False
+        else:
+            self.scene.render()
+
+        self.model.render()
 
         self.wnd.old_keys = np.copy(self.wnd.keys)
         self.wnd.wheel = 0

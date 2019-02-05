@@ -418,8 +418,6 @@ class Scene:
                 self.VAOS[RENDER_OBJ].render()
                 self.PROG["has_image"].value = False
 
-        self.MODEL.render()
-
     def set_xy(self, xy):
         self.PROG["x"].value = xy[0]
         self.PROG["y"].value = xy[1]
