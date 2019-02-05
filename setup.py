@@ -21,7 +21,12 @@ setup(
         "torchvision>=0.2.1",
     ],
     package_data={
-        "strike_with_a_pose": ["data/*", "scene_files/*", "instructions.html"]
+        "strike_with_a_pose": [
+            "data/*",
+            "scene_files/*",
+            "about.html",
+            "instructions.html",
+        ]
     },
     scripts=["run/strike-with-a-pose"],
     zip_safe=False,
