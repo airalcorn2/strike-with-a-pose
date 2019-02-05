@@ -85,7 +85,7 @@ class DecoderRNN(nn.Module):
 
 
 class ImageCaptioner:
-    def __init__(self):
+    def __init__(self, true_class=None):
         # Pretrained models from:
         # https://www.dropbox.com/s/ne0ixz5d58ccbbz/pretrained_model.zip.
         if not os.path.isfile(ENCODER_PATH):

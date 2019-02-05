@@ -164,8 +164,8 @@ class Scene:
                 uniform float y;
                 uniform float z;
 
-                uniform mat3 R;
-                uniform mat3 L;
+                uniform mat3 R_obj;
+                uniform mat3 R_light;
                 uniform vec3 DirLight;
                 uniform mat4 VP;
                 uniform int mode;
@@ -181,11 +181,11 @@ class Scene:
 
                 void main() {
                     if (mode == 0) {
-                        gl_Position = VP * vec4((R * in_vert) + vec3(x, y, z), 1.0);
+                        gl_Position = VP * vec4((R_obj * in_vert) + vec3(x, y, z), 1.0);
                         v_pos = in_vert;
-                        v_norm = R * in_norm;
+                        v_norm = R_obj * in_norm;
                         v_text = in_text;
-                        v_light = L * DirLight;
+                        v_light = R_light * DirLight;
                     } else {
                         gl_Position = vec4(in_vert, 1.0);
                         v_pos = in_vert;
@@ -264,19 +264,18 @@ class Scene:
         self.PROG["dif_int"].value = 0.7
         self.PROG["amb_int"].value = 0.5
         self.PROG["cam_pos"].value = tuple(EYE)
-        self.view_angle = 8.213
-        self.TAN_ANGLE = np.tan(self.view_angle * np.pi / 180.0)
+        self.angle_of_view = 16.426
+        self.TAN_ANGLE = np.tan(self.angle_of_view / 2 * np.pi / 180.0)
         perspective = Matrix44.perspective_projection(
-            2 * self.view_angle, RATIO, 0.1, 1000.0
+            self.angle_of_view, RATIO, 0.1, 1000.0
         )
         self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
         self.yaw = 0
         self.pitch = 0
         self.roll = 0
-        self.R = self.gen_rotation_matrix(self.yaw, self.pitch, self.roll)
-        self.PROG["R"].write(self.R.astype("f4").tobytes())
-        self.L = np.eye(3)
-        self.PROG["L"].write(self.L.astype("f4").tobytes())
+        R_obj = self.gen_rotation_matrix(self.yaw, self.pitch, self.roll)
+        self.PROG["R_obj"].write(R_obj.astype("f4").tobytes())
+        self.PROG["R_light"].write(np.eye(3).astype("f4").tobytes())
         self.PROG["amb_rgb"].value = (1.0, 1.0, 1.0)
         self.PROG["dif_rgb"].value = (1.0, 1.0, 1.0)
         self.PROG["spc_rgb"].value = (1.0, 1.0, 1.0)
@@ -351,23 +350,23 @@ class Scene:
         VAOS = {}
         TEXTURES = {}
         packed_arrays = parse_obj_file(SCENE_DIR + OBJ_F)
-        (mtl_infos, sub_objs) = parse_mtl_file(SCENE_DIR + MTL_F)
-        SUB_OBJS = []
-        for sub_obj in sub_objs:
-            if sub_obj not in packed_arrays:
-                print("Skipping {0}.".format(sub_obj))
+        (MTL_INFOS, render_objs) = parse_mtl_file(SCENE_DIR + MTL_F)
+        RENDER_OBJS = []
+        for render_obj in render_objs:
+            if render_obj not in packed_arrays:
+                print("Skipping {0}.".format(render_obj))
                 continue
 
-            SUB_OBJS.append(sub_obj)
-            packed_array = packed_arrays[sub_obj]
+            RENDER_OBJS.append(render_obj)
+            packed_array = packed_arrays[render_obj]
             vbo = self.CTX.buffer(packed_array.flatten().astype("f4").tobytes())
             vao = self.CTX.simple_vertex_array(
                 self.PROG, vbo, "in_vert", "in_norm", "in_text"
             )
-            VAOS[sub_obj] = vao
+            VAOS[render_obj] = vao
 
-            if "map_Kd" in mtl_infos[sub_obj]:
-                texture_f = SCENE_DIR + mtl_infos[sub_obj]["map_Kd"]
+            if "map_Kd" in MTL_INFOS[render_obj]:
+                texture_f = SCENE_DIR + MTL_INFOS[render_obj]["map_Kd"]
                 texture_img = (
                     Image.open(texture_f)
                     .transpose(Image.FLIP_TOP_BOTTOM)
@@ -375,25 +374,18 @@ class Scene:
                 )
                 TEXTURE = self.CTX.texture(texture_img.size, 4, texture_img.tobytes())
                 TEXTURE.build_mipmaps()
-                TEXTURES[sub_obj] = TEXTURE
+                TEXTURES[render_obj] = TEXTURE
 
-        self.SUB_OBJS = SUB_OBJS
-        self.RENDER_OBJS = self.SUB_OBJS
+        self.RENDER_OBJS = RENDER_OBJS
         self.RENDER_OBJ = True
         self.VAOS = VAOS
         self.TEXTURES = TEXTURES
-        self.MTL_INFO = mtl_infos
+        self.MTL_INFOS = MTL_INFOS
 
-        self.trans_funcs = {
-            "x_delta": self.set_x,
-            "y_delta": self.set_y,
-            "z_delta": self.set_z,
-        }
-        self.name2param = {"x_delta": "x", "y_delta": "y", "z_delta": "z"}
+        self.prog_vals = {"x", "y", "z", "amb_int", "dif_int"}
+        self.angle2idx = {"yaw": 0, "pitch": 1, "roll": 2}
 
     def render(self):
-        self.CTX.viewport = self.wnd.viewport
-
         if self.USE_BACKGROUND and BACKGROUND_F is not None:
 
             self.CTX.disable(moderngl.DEPTH_TEST)
@@ -408,22 +400,24 @@ class Scene:
             self.CTX.clear(R, G, B)
 
         if self.RENDER_OBJ:
-            for SUB_OBJ in self.RENDER_OBJS:
+            for RENDER_OBJ in self.RENDER_OBJS:
                 if self.PROG["use_texture"].value:
-                    self.PROG["amb_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Ka"])
-                    self.PROG["dif_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Kd"])
+                    self.PROG["amb_rgb"].value = tuple(self.MTL_INFOS[RENDER_OBJ]["Ka"])
+                    self.PROG["dif_rgb"].value = tuple(self.MTL_INFOS[RENDER_OBJ]["Kd"])
                     if self.use_spec:
-                        self.PROG["spc_rgb"].value = tuple(self.MTL_INFO[SUB_OBJ]["Ks"])
-                        self.PROG["spec_exp"].value = self.MTL_INFO[SUB_OBJ]["Ns"]
+                        self.PROG["spc_rgb"].value = tuple(
+                            self.MTL_INFOS[RENDER_OBJ]["Ks"]
+                        )
+                        self.PROG["spec_exp"].value = self.MTL_INFOS[RENDER_OBJ]["Ns"]
                     else:
                         self.PROG["spc_rgb"].value = (0.0, 0.0, 0.0)
 
-                    self.PROG["trans"].value = self.MTL_INFO[SUB_OBJ]["d"]
-                    if SUB_OBJ in self.TEXTURES:
+                    self.PROG["trans"].value = self.MTL_INFOS[RENDER_OBJ]["d"]
+                    if RENDER_OBJ in self.TEXTURES:
                         self.PROG["has_image"].value = True
-                        self.TEXTURES[SUB_OBJ].use()
+                        self.TEXTURES[RENDER_OBJ].use()
 
-                self.VAOS[SUB_OBJ].render()
+                self.VAOS[RENDER_OBJ].render()
                 self.PROG["has_image"].value = False
 
         self.MODEL.render()
@@ -432,35 +426,11 @@ class Scene:
         self.PROG["x"].value = xy[0]
         self.PROG["y"].value = xy[1]
 
-    def set_x(self, x):
-        self.PROG["x"].value = x
-
-    def get_x(self):
-        return self.PROG["x"].value
-
-    def set_y(self, y):
-        self.PROG["y"].value = y
-
-    def get_y(self):
-        return self.PROG["y"].value
-
-    def set_z(self, z):
-        self.PROG["z"].value = z
-
-    def get_z(self):
-        return self.PROG["z"].value
-
-    def set_amb(self, amb_int):
-        self.PROG["amb_int"].value = amb_int
-
-    def set_dir(self, dif_int):
-        self.PROG["dif_int"].value = dif_int
-
-    def adjust_viewing_angle(self, view_angle):
-        self.view_angle = view_angle
-        self.TAN_ANGLE = np.tan(self.view_angle * np.pi / 180.0)
+    def adjust_angle_of_view(self, angle_of_view):
+        self.angle_of_view = angle_of_view
+        self.TAN_ANGLE = np.tan(self.angle_of_view / 2 * np.pi / 180.0)
         perspective = Matrix44.perspective_projection(
-            2 * self.view_angle, RATIO, 0.1, 1000.0
+            self.angle_of_view, RATIO, 0.1, 1000.0
         )
         self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
 
@@ -513,94 +483,69 @@ class Scene:
 
         return np.dot(R_yaw, np.dot(R_pitch, R_roll))
 
-    def get_angles_from_matrix(self, R):
-        R = R.T
-        yaw = np.arctan2(R[0, 2], R[2, 2])
-        roll = np.arctan2(R[1, 0], R[1, 1])
-        pitch = np.arctan2(-R[1, 2], np.sqrt(R[1, 0] ** 2 + R[1, 1] ** 2))
+    def get_angles_from_matrix(self, R_mat):
+        R_mat = R_mat.T
+        yaw = np.arctan2(R_mat[0, 2], R_mat[2, 2])
+        roll = np.arctan2(R_mat[1, 0], R_mat[1, 1])
+        pitch = np.arctan2(-R_mat[1, 2], np.sqrt(R_mat[1, 0] ** 2 + R_mat[1, 1] ** 2))
         return (yaw, pitch, roll)
 
-    def rotate(self, angles):
-        R_yaw = self.gen_rotation_matrix_from_angle_axis(angles[0], self.R[:, 1])
-        R_pitch = self.gen_rotation_matrix_from_angle_axis(angles[1], self.R[:, 0])
-        R_roll = self.gen_rotation_matrix_from_angle_axis(angles[2], self.R[:, 2])
-        R = np.dot(np.dot(R_yaw, np.dot(R_pitch, R_roll)), self.R)
-        (self.yaw, self.pitch, self.roll) = self.get_angles_from_matrix(R)
-        self.R = self.gen_rotation_matrix(self.yaw, self.pitch, self.roll).T
-        self.PROG["R"].write(self.R.astype("f4").tobytes())
-
-    def rotate_light(self, angles):
-        L_yaw = self.gen_rotation_matrix_from_angle_axis(angles[0], self.L[:, 1])
-        L_pitch = self.gen_rotation_matrix_from_angle_axis(angles[1], self.L[:, 0])
-        L_roll = self.gen_rotation_matrix_from_angle_axis(angles[2], self.L[:, 2])
-        L = np.dot(np.dot(L_yaw, np.dot(L_pitch, L_roll)), self.L)
-        (yaw, pitch, roll) = self.get_angles_from_matrix(L)
-        self.L = self.gen_rotation_matrix(yaw, pitch, roll).T
-        self.PROG["L"].write(self.L.astype("f4").tobytes())
+    def rotate(self, angles, which):
+        R_mat = np.array(self.PROG[which].value).reshape((3, 3))
+        R_yaw = self.gen_rotation_matrix_from_angle_axis(angles[0], R_mat[:, 1])
+        R_pitch = self.gen_rotation_matrix_from_angle_axis(angles[1], R_mat[:, 0])
+        R_roll = self.gen_rotation_matrix_from_angle_axis(angles[2], R_mat[:, 2])
+        R_mat = np.dot(np.dot(R_yaw, np.dot(R_pitch, R_roll)), R_mat)
+        (self.yaw, self.pitch, self.roll) = self.get_angles_from_matrix(R_mat)
+        R_mat = self.gen_rotation_matrix(self.yaw, self.pitch, self.roll).T
+        self.PROG[which].write(R_mat.astype("f4").tobytes())
 
     def get_params(self):
-        (x, y, z) = (self.PROG["x"].value, self.PROG["y"].value, self.PROG["z"].value)
-        (yaw, pitch, roll) = (self.yaw, self.pitch, self.roll)
-
+        R_light = np.array(self.PROG["R_light"].value).reshape((3, 3)).T
         params = [
-            ("x_delta", x),
-            ("y_delta", y),
-            ("z_delta", z),
-            ("yaw", np.degrees(yaw)),
-            ("pitch", np.degrees(pitch)),
-            ("roll", np.degrees(roll)),
+            ("x", self.PROG["x"].value),
+            ("y", self.PROG["y"].value),
+            ("z", self.PROG["z"].value),
+            ("yaw", np.degrees(self.yaw)),
+            ("pitch", np.degrees(self.pitch)),
+            ("roll", np.degrees(self.roll)),
             ("amb_int", self.PROG["amb_int"].value),
             ("dif_int", self.PROG["dif_int"].value),
-            (
-                "DirLight",
-                tuple(np.dot(self.L.T, np.array(self.PROG["DirLight"].value))),
-            ),
-            ("view_angle", self.view_angle),
+            ("DirLight", tuple(np.dot(R_light, np.array(self.PROG["DirLight"].value)))),
+            ("angle_of_view", self.angle_of_view),
         ]
         return params
 
     def get_param(self, name):
-        if name in {"x_delta", "y_delta", "z_delta"}:
-            return self.PROG[name[0]].value
-        elif name in {"yaw", "pitch", "roll"}:
-            angle2idx = {"yaw": 0, "pitch": 1, "roll": 2}
-            return [self.yaw, self.pitch, self.roll][angle2idx[name]]
+        if name in self.prog_vals:
+            return self.PROG[self.trans2idx[name]].value
+        elif name in self.angle2idx:
+            return [self.yaw, self.pitch, self.roll][self.angle2idx[name]]
 
     def set_params(self, params):
-        self.adjust_viewing_angle(params["view_angle"])
-        self.set_x(params["x_delta"])
-        self.set_y(params["y_delta"])
-        self.set_z(params["z_delta"])
-        self.set_amb(params["amb_int"])
-        self.set_dir(params["dif_int"])
-
-        for rot in ["yaw", "pitch", "roll"]:
-            rads = np.radians(params[rot])
-            rads_x = np.cos(rads)
-            rads_y = np.sin(rads)
-            params[rot] = np.arctan2(rads_y, rads_x)
-
-        (self.yaw, self.pitch, self.roll) = (
-            params["yaw"],
-            params["pitch"],
-            params["roll"],
-        )
-        self.R = self.gen_rotation_matrix(self.yaw, self.pitch, self.roll).T
-        self.PROG["R"].write(self.R.astype("f4").tobytes())
-        self.PROG["DirLight"].value = params["DirLight"]
-        self.L = np.eye(3)
-        self.PROG["L"].write(self.L.astype("f4").tobytes())
+        for (name, value) in params.items():
+            self.set_param(name, value)
 
     def set_param(self, name, value):
-        if name in {"yaw", "pitch", "roll"}:
+        if name in self.angle2idx:
             rads = np.radians(value)
             rads_x = np.cos(rads)
             rads_y = np.sin(rads)
             value = np.arctan2(rads_y, rads_x)
             angles = [self.yaw, self.pitch, self.roll]
-            angle2idx = {"yaw": 0, "pitch": 1, "roll": 2}
-            angles[angle2idx[name]] = value
-            self.R = self.gen_rotation_matrix(*angles).T
-            self.PROG["R"].write(self.R.astype("f4").tobytes())
-        elif name in {"x_delta", "y_delta", "z_delta"}:
-            self.trans_funcs[name](value)
+            angles[self.angle2idx[name]] = value
+            if name == "yaw":
+                self.yaw = value
+            elif name == "pitch":
+                self.pitch = value
+            elif name == "roll":
+                self.roll = value
+            R_obj = self.gen_rotation_matrix(*angles).T
+            self.PROG["R_obj"].write(R_obj.astype("f4").tobytes())
+        elif name in self.prog_vals:
+            self.PROG[name].value = value
+        elif name == "angle_of_view":
+            self.adjust_angle_of_view(value)
+        elif name == "DirLight":
+            self.PROG["DirLight"].value = value
+            self.PROG["R_light"].write(np.eye(3).astype("f4").tobytes())
