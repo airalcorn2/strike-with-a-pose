@@ -270,11 +270,7 @@ class Scene:
             self.angle_of_view, RATIO, 0.1, 1000.0
         )
         self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
-        self.yaw = 0
-        self.pitch = 0
-        self.roll = 0
-        R_obj = self.gen_rotation_matrix(self.yaw, self.pitch, self.roll)
-        self.PROG["R_obj"].write(R_obj.astype("f4").tobytes())
+        self.PROG["R_obj"].write(np.eye(3).astype("f4").tobytes())
         self.PROG["R_light"].write(np.eye(3).astype("f4").tobytes())
         self.PROG["amb_rgb"].value = (1.0, 1.0, 1.0)
         self.PROG["dif_rgb"].value = (1.0, 1.0, 1.0)
@@ -382,8 +378,24 @@ class Scene:
         self.TEXTURES = TEXTURES
         self.MTL_INFOS = MTL_INFOS
 
+        self.param_names = [
+            "x",
+            "y",
+            "z",
+            "yaw",
+            "pitch",
+            "roll",
+            "amb_int",
+            "dif_int",
+            "DirLight",
+            "angle_of_view",
+        ]
         self.prog_vals = {"x", "y", "z", "amb_int", "dif_int"}
-        self.angle2idx = {"yaw": 0, "pitch": 1, "roll": 2}
+        self.angle2func = {
+            "yaw": self.get_yaw_from_matrix,
+            "pitch": self.get_pitch_from_matrix,
+            "roll": self.get_roll_from_matrix,
+        }
 
     def render(self):
         if self.USE_BACKGROUND and BACKGROUND_F is not None:
@@ -430,114 +442,96 @@ class Scene:
         )
         self.PROG["VP"].write((perspective * LOOK_AT).astype("f4").tobytes())
 
-    def gen_rotation_matrix_from_angle_axis(self, theta, axis):
-        # See: https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle.
-        c = np.cos(theta)
-        s = np.sin(theta)
-        (ux, uy, uz) = (axis[0], axis[1], axis[2])
-        x_col = np.array(
-            [
-                [c + ux ** 2 * (1 - c)],
-                [uy * ux * (1 - c) + uz * s],
-                [uz * ux * (1 - c) - uy * s],
-            ]
-        )
-        y_col = np.array(
-            [
-                [ux * uy * (1 - c) - uz * s],
-                [c + uy ** 2 * (1 - c)],
-                [uz * uy * (1 - c) + ux * s],
-            ]
-        )
-        z_col = np.array(
-            [
-                [ux * uz * (1 - c) + uy * s],
-                [uy * uz * (1 - c) - ux * s],
-                [c + uz ** 2 * (1 - c)],
-            ]
-        )
-        return np.hstack((x_col, y_col, z_col))
-
-    def gen_rotation_matrix(self, yaw=0.0, pitch=0.0, roll=0.0):
+    def gen_rot_matrix_yaw(self, yaw):
         R_yaw = np.eye(3)
         R_yaw[0, 0] = np.cos(yaw)
         R_yaw[0, 2] = np.sin(yaw)
         R_yaw[2, 0] = -np.sin(yaw)
         R_yaw[2, 2] = np.cos(yaw)
+        return R_yaw
 
+    def gen_rot_matrix_pitch(self, pitch):
         R_pitch = np.eye(3)
         R_pitch[1, 1] = np.cos(pitch)
         R_pitch[1, 2] = -np.sin(pitch)
         R_pitch[2, 1] = np.sin(pitch)
         R_pitch[2, 2] = np.cos(pitch)
+        return R_pitch
 
+    def gen_rot_matrix_roll(self, roll):
         R_roll = np.eye(3)
         R_roll[0, 0] = np.cos(roll)
         R_roll[0, 1] = -np.sin(roll)
         R_roll[1, 0] = np.sin(roll)
         R_roll[1, 1] = np.cos(roll)
+        return R_roll
 
+    def gen_rotation_matrix(self, yaw=0.0, pitch=0.0, roll=0.0):
+        R_yaw = self.gen_rot_matrix_yaw(yaw)
+        R_pitch = self.gen_rot_matrix_pitch(pitch)
+        R_roll = self.gen_rot_matrix_roll(roll)
         return np.dot(R_yaw, np.dot(R_pitch, R_roll))
 
+    def get_yaw_from_matrix(self, R_mat):
+        return np.arctan2(R_mat[0, 2], R_mat[2, 2])
+
+    def get_pitch_from_matrix(self, R_mat):
+        return np.arctan2(-R_mat[1, 2], np.sqrt(R_mat[1, 0] ** 2 + R_mat[1, 1] ** 2))
+
+    def get_roll_from_matrix(self, R_mat):
+        return np.arctan2(R_mat[1, 0], R_mat[1, 1])
+
     def get_angles_from_matrix(self, R_mat):
-        R_mat = R_mat.T
-        yaw = np.arctan2(R_mat[0, 2], R_mat[2, 2])
-        roll = np.arctan2(R_mat[1, 0], R_mat[1, 1])
-        pitch = np.arctan2(-R_mat[1, 2], np.sqrt(R_mat[1, 0] ** 2 + R_mat[1, 1] ** 2))
-        return (yaw, pitch, roll)
+        yaw = self.get_yaw_from_matrix(R_mat)
+        pitch = self.get_pitch_from_matrix(R_mat)
+        roll = self.get_roll_from_matrix(R_mat)
+        return {"yaw": yaw, "pitch": pitch, "roll": roll}
 
     def rotate(self, angles, which):
-        R_mat = np.array(self.PROG[which].value).reshape((3, 3))
-        R_yaw = self.gen_rotation_matrix_from_angle_axis(angles[0], R_mat[:, 1])
-        R_pitch = self.gen_rotation_matrix_from_angle_axis(angles[1], R_mat[:, 0])
-        R_roll = self.gen_rotation_matrix_from_angle_axis(angles[2], R_mat[:, 2])
+        R_yaw = self.gen_rot_matrix_yaw(angles[0])
+        R_pitch = self.gen_rot_matrix_pitch(angles[1])
+        R_roll = self.gen_rot_matrix_roll(angles[2])
+        R_mat = np.array(self.PROG[which].value).reshape((3, 3)).T
         R_mat = np.dot(np.dot(R_yaw, np.dot(R_pitch, R_roll)), R_mat)
-        (self.yaw, self.pitch, self.roll) = self.get_angles_from_matrix(R_mat)
-        R_mat = self.gen_rotation_matrix(self.yaw, self.pitch, self.roll).T
-        self.PROG[which].write(R_mat.astype("f4").tobytes())
+        angles = self.get_angles_from_matrix(R_mat)
+        R_mat = self.gen_rotation_matrix(**angles)
+        self.PROG[which].write(R_mat.T.astype("f4").tobytes())
 
     def get_params(self):
-        R_light = np.array(self.PROG["R_light"].value).reshape((3, 3)).T
         params = [
-            ("x", self.PROG["x"].value),
-            ("y", self.PROG["y"].value),
-            ("z", self.PROG["z"].value),
-            ("yaw", np.degrees(self.yaw)),
-            ("pitch", np.degrees(self.pitch)),
-            ("roll", np.degrees(self.roll)),
-            ("amb_int", self.PROG["amb_int"].value),
-            ("dif_int", self.PROG["dif_int"].value),
-            ("DirLight", tuple(np.dot(R_light, np.array(self.PROG["DirLight"].value)))),
-            ("angle_of_view", self.angle_of_view),
+            (param_name, self.get_param(param_name)) for param_name in self.param_names
         ]
         return params
 
     def get_param(self, name):
         if name in self.prog_vals:
-            return self.PROG[self.trans2idx[name]].value
-        elif name in self.angle2idx:
-            return [self.yaw, self.pitch, self.roll][self.angle2idx[name]]
+            return self.PROG[name].value
+        elif name in self.angle2func:
+            R_obj = np.array(self.PROG["R_obj"].value).reshape((3, 3)).T
+            rads = self.angle2func[name](R_obj)
+            return np.degrees(rads)
+        elif name == "DirLight":
+            R_light = np.array(self.PROG["R_light"].value).reshape((3, 3)).T
+            return tuple(np.dot(R_light, np.array(self.PROG["DirLight"].value)))
+        elif name == "angle_of_view":
+            return self.angle_of_view
 
     def set_params(self, params):
         for (name, value) in params.items():
             self.set_param(name, value)
 
     def set_param(self, name, value):
-        if name in self.angle2idx:
+        if name in self.angle2func:
             rads = np.radians(value)
             rads_x = np.cos(rads)
             rads_y = np.sin(rads)
             value = np.arctan2(rads_y, rads_x)
-            angles = [self.yaw, self.pitch, self.roll]
-            angles[self.angle2idx[name]] = value
-            if name == "yaw":
-                self.yaw = value
-            elif name == "pitch":
-                self.pitch = value
-            elif name == "roll":
-                self.roll = value
-            R_obj = self.gen_rotation_matrix(*angles).T
-            self.PROG["R_obj"].write(R_obj.astype("f4").tobytes())
+
+            R_obj = np.array(self.PROG["R_obj"].value).reshape((3, 3)).T
+            angles = self.get_angles_from_matrix(R_obj)
+            angles[name] = value
+            R_obj = self.gen_rotation_matrix(**angles)
+            self.PROG["R_obj"].write(R_obj.T.astype("f4").tobytes())
         elif name in self.prog_vals:
             self.PROG[name].value = value
         elif name == "angle_of_view":

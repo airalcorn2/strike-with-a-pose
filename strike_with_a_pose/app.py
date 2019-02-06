@@ -207,9 +207,9 @@ class RotateTool:
 
             # See: http://planning.cs.uiuc.edu/node103.html
             # and: http://www.gregslabaugh.net/publications/euler.pdf.
-            data["yaw"] = -np.arctan2(R[0, 2], R[2, 2])
-            data["roll"] = -np.arctan2(R[1, 0], R[1, 1])
-            data["pitch"] = -np.arctan2(-R[1, 2], np.sqrt(R[1, 0] ** 2 + R[1, 1] ** 2))
+            data["yaw"] = np.arctan2(R[0, 2], R[2, 2])
+            data["roll"] = np.arctan2(R[1, 0], R[1, 1])
+            data["pitch"] = np.arctan2(-R[1, 2], np.sqrt(R[1, 0] ** 2 + R[1, 1] ** 2))
 
     def stop_drag(self, x, y, which):
         if self.arcball_on:
