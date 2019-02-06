@@ -30,7 +30,7 @@ class ClassActivationMapper(nn.Module):
         self.true_label = self.label_map[self.true_class]
 
         feature_params = list(self.net.parameters())[-2]
-        self.weight_softmax = np.squeeze(feature_params.data.numpy())
+        self.weight_softmax = np.squeeze(feature_params.data.detach().cpu().numpy())
         # Get features from Mixed_7c layer.
         self.features = torch.zeros((1, 2048, 8, 8))
 
