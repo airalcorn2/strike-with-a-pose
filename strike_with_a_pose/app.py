@@ -441,22 +441,22 @@ class SceneWindow(QOpenGLWidget):
             self.scene.RENDER_OBJ = not self.scene.RENDER_OBJ
             self.model.clear()
 
-        if key == QtCore.Qt.Key_E:
+        if key == QtCore.Qt.Key_I:
             (render_obj_idx, _) = QInputDialog.getInt(
                 self,
-                "Select Render Object",
-                "Object Index",
-                len(self.scene.RENDER_OBJS),
+                "Select Individual Component",
+                "Component Index",
+                len(self.scene.OG_RENDER_OBJS),
             )
-            if render_obj_idx >= len(self.scene.RENDER_OBJS):
-                self.scene.RENDER_OBJS = self.scene.RENDER_OBJS
+            if render_obj_idx >= len(self.scene.OG_RENDER_OBJS):
+                self.scene.RENDER_OBJS = self.scene.OG_RENDER_OBJS
             else:
-                self.scene.RENDER_OBJS = self.scene.RENDER_OBJS[
+                self.scene.RENDER_OBJS = self.scene.OG_RENDER_OBJS[
                     render_obj_idx : render_obj_idx + 1
                 ]
-                render_obj = self.scene.RENDER_OBJS[render_obj_idx]
+                render_obj = self.scene.OG_RENDER_OBJS[render_obj_idx]
                 print(render_obj)
-                print(self.scene.MTL_INFO[render_obj])
+                print(self.scene.MTL_INFOS[render_obj])
 
         if key == QtCore.Qt.Key_S:
             self.scene.use_spec = not self.scene.use_spec

@@ -372,6 +372,7 @@ class Scene:
                 TEXTURE.build_mipmaps()
                 TEXTURES[render_obj] = TEXTURE
 
+        self.OG_RENDER_OBJS = RENDER_OBJS
         self.RENDER_OBJS = RENDER_OBJS
         self.RENDER_OBJ = True
         self.VAOS = VAOS
