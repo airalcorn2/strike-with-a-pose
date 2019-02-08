@@ -35,7 +35,6 @@ def parse_obj_file(input_obj):
     current_mtl = None
     min_vec = np.full(3, np.inf)
     max_vec = np.full(3, -np.inf)
-    empty_vt = np.array([0.0, 0.0, 0.0])
     for line in obj_f:
         line = line.strip()
         if line == "":
@@ -56,21 +55,39 @@ def parse_obj_file(input_obj):
 
             data[elem_type].append(vals)
         elif elem_type == "f":
-            f = parts[1:4]
-            for fv in f:
-                (v, vt, vn) = fv.split("/")
+            if len(parts[1:]) == 4:
+                triangles = [parts[1:4], [parts[1], parts[3], parts[4]]]
+            else:
+                triangles = [parts[1:4]]
 
-                # Convert to zero-based indexing.
-                v = int(v) - 1
-                vn = int(vn) - 1
-                vt = int(vt) - 1 if vt else -1
+            for f in triangles:
+                for fv in f:
+                    v_parts = fv.split("/")
+                    if len(v_parts) == 3:
+                        (v, vt, vn) = v_parts
+                        vn = int(vn) - 1
+                    else:
+                        (v, vt) = v_parts
+                        vn = -1
 
-                if vt == -1:
-                    row = np.concatenate((data["v"][v], data["vn"][vn], empty_vt))
-                else:
-                    row = np.concatenate((data["v"][v], data["vn"][vn], data["vt"][vt]))
+                    # Convert to zero-based indexing.
+                    v = int(v) - 1
+                    vt = int(vt) - 1 if vt else -1
 
-                packed_arrays[current_mtl].append(row)
+                    data_v = data["v"][v]
+                    if vn != -1:
+                        data_vn = data["vn"][vn]
+                    else:
+                        data_vn = np.zeros(3)
+
+                    if vt != -1:
+                        data_vt = data["vt"][vt]
+                    else:
+                        data_vt = np.zeros(2)
+
+                    row = np.concatenate((data_v, data_vn, data_vt))
+
+                    packed_arrays[current_mtl].append(row)
         elif elem_type == "usemtl":
             current_mtl = parts[1]
             if current_mtl not in packed_arrays:
@@ -181,15 +198,13 @@ class Scene:
 
                 void main() {
                     if (mode == 0) {
-                        gl_Position = VP * vec4((R_obj * in_vert) + vec3(x, y, z), 1.0);
-                        v_pos = in_vert;
+                        v_pos = R_obj * in_vert + vec3(x, y, z);
+                        gl_Position = VP * vec4(v_pos, 1.0);
                         v_norm = R_obj * in_norm;
                         v_text = in_text;
                         v_light = R_light * DirLight;
                     } else {
                         gl_Position = vec4(in_vert, 1.0);
-                        v_pos = in_vert;
-                        v_norm = in_norm;
                         v_text = in_text;
                     }
                 }
@@ -327,19 +342,17 @@ class Scene:
                     [1.0, 1.0, 0.0],
                 ]
             )
-            # Not used for the background, but the vertex shader expects a normal.
-            normals = np.repeat([[0.0, 0.0, 1.0]], len(vertices), axis=0)
             # Image coordinates are [0, 1].
             texture_coords = np.array(
                 [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [0.0, 0.0], [1.0, 0.0], [1.0, 1.0]]
             )
 
-            BACKGROUND_ARRAY = np.hstack((vertices, normals, texture_coords))
+            BACKGROUND_ARRAY = np.hstack((vertices, texture_coords))
             BACKGROUND_VBO = self.CTX.buffer(
                 BACKGROUND_ARRAY.flatten().astype("f4").tobytes()
             )
             self.BACKGROUND_VAO = self.CTX.simple_vertex_array(
-                self.PROG, BACKGROUND_VBO, "in_vert", "in_norm", "in_text"
+                self.PROG, BACKGROUND_VBO, "in_vert", "in_text"
             )
 
         # Load vertices and textures.
