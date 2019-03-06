@@ -160,6 +160,6 @@ Press **L** to toggle **Live** mode. When on, the machine learning model will co
 
 Press **X** to toggle the object's **teXture**, which is useful for making sure the directional light is properly interacting with your object. If the light looks funny, swapping/negating the vertex normal coordinates can usually fix it. See the [`fix_normals.py`](https://github.com/airalcorn2/strike-with-a-pose/blob/master/utils/fix_normals.py) script for an example.
 
-Press **I** to bring up the **Individual Component** selector. This feature allows you to display individual object components (as defined by each `newmtl` in the `.mtl` file) *by themselves*.
+Press **I** to bring up the **Individual** component selector. This feature allows you to display individual object components (as defined by each `newmtl` in the `.mtl` file) *by themselves*.
 
 Press **C** to **Capture** a screenshot of the current render. Screenshots are saved in the directory where the tool is started.
