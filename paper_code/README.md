@@ -7,9 +7,9 @@
   <col width="299">
   <col width="299">
   <tr>
-    <th><img src="school_bus.gif"></th>
-    <th><img src="power_drill.gif"></th>
-    <th><img src="school_bus_light.gif"></th>
+    <th><img src="school_bus.gif", width="299"></th>
+    <th><img src="power_drill.gif", width="299"></th>
+    <th><img src="school_bus_light.gif", width="299"></th>
   </tr>
   <tr>
     <td>Targeting `school bus` and only optimizing object rotation parameters.</td>
