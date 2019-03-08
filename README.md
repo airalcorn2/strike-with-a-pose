@@ -21,6 +21,8 @@ This is the companion tool to the paper:
 }
 ```
 
+Code to run experiments like those described in the paper can be found in the [`paper_code`](https://github.com/airalcorn2/strike-with-a-pose/tree/master/paper_code) directory.
+
 ## Table of Contents
 
 * [**Requirements**](#Requirements)
