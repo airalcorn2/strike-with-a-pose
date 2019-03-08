@@ -23,7 +23,7 @@ This repository contains the (cleaned up and improved) code for the experiments 
 
 > [Michael A. Alcorn](https://sites.google.com/view/michaelaalcorn), Qi Li, Zhitao Gong, Chengfei Wang, Long Mai, Wei-Shinn Ku, and [Anh Nguyen](http://anhnguyen.me). [Strike (with) a pose: Neural networks are easily fooled by strange poses of familiar objects](https://arxiv.org/abs/1811.11553). Conference on Computer Vision and Pattern Recognition (CVPR). 2019.
 
-If you use this tool for your own research, please cite:
+If you use this code for your own research, please cite:
 
 ```
 @article{alcorn-2019-strike-with-a-pose,
