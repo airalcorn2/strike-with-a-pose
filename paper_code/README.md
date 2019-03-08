@@ -12,9 +12,9 @@
     <th><img src="school_bus_light.gif", width="299"></th>
   </tr>
   <tr>
-    <td>Targeting `school bus` and only optimizing object rotation parameters.</td>
-    <td>Targeting `power drill` and optimizing both rotation and translation parameters.</td>
-    <td>Targeting `school bus` and only optimizing light rotation parameters.</td>
+    <td>Targeting <code>school bus</code> and only optimizing object rotation parameters.</td>
+    <td>Targeting <code>power drill</code> and optimizing both rotation and translation parameters.</td>
+    <td>Targeting <code>school bus</code> and only optimizing light rotation parameters.</td>
   </tr>
 
 </table>
