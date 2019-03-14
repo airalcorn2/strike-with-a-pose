@@ -192,12 +192,12 @@ export FIRST_VIRTUAL_DISPLAY=8
 
 for ((gpu=0; gpu<${GPUS}; gpu++));
 do
-    # Start X.Org servers.
+    # Start X.Org server.
     export xorg_server=$((FIRST_XORG_SERVER + gpu))
     echo ${xorg_server}
     nohup Xorg :${xorg_server} -config xorg.conf.${gpu} &
 
-    # Start VNC servers.
+    # Start VNC server.
     export virtual_display=$((xorg_server + GPUS))
     echo ${virtual_display}
     nohup /opt/TurboVNC/bin/vncserver :${virtual_display}
