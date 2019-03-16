@@ -81,7 +81,7 @@ def parse_obj_file(input_obj):
                         data_vn = np.zeros(3)
 
                     if vt != -1:
-                        data_vt = data["vt"][vt]
+                        data_vt = data["vt"][vt][:2]
                     else:
                         data_vt = np.zeros(2)
 
@@ -100,8 +100,7 @@ def parse_obj_file(input_obj):
     max_pos_val = max(max_pos_vec)
     max_pos_vec_norm = max_pos_vec / max_pos_val
     for (sub_obj, packed_array) in packed_arrays.items():
-        # z-coordinate of texture is always zero (if present).
-        packed_array = np.stack(packed_array)[:, :8]
+        packed_array = np.stack(packed_array)
         original_vertices = packed_array[:, :3].copy()
 
         # All coordinates greater than or equal to zero.
