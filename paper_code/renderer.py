@@ -233,11 +233,12 @@ class Renderer:
                         float dif = clamp(dot(v_light, v_norm), 0.0, 1.0) * dif_int;
                         if (use_texture) {
                             vec3 surface_rgb = dif_rgb;
+                            vec3 diffuse = dif * surface_rgb;
                             if (has_image) {
                                 surface_rgb = texture(Texture, v_text).rgb;
+                                diffuse = dif * dif_rgb * surface_rgb;
                             }
                             vec3 ambient = amb_int * amb_rgb * surface_rgb;
-                            vec3 diffuse = dif * dif_rgb * surface_rgb;
                             float spec = 0.0;
                             if (dif > 0.0) {
                                 vec3 reflected = reflect(-v_light, v_norm);
