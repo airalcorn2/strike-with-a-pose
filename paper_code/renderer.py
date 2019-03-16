@@ -18,7 +18,7 @@ from pyrr import Matrix44
 
 
 def parse_obj_file(input_obj):
-    """Parse wavefront .obj file.
+    """Parse Wavefront .obj file.
 
     :param input_obj:
     :return: Dictionary of NumPy arrays with shape (3 * num_faces, 8). Each row contains
