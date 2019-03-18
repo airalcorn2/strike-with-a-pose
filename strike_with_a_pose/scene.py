@@ -388,6 +388,7 @@ class Scene:
         self.OG_RENDER_OBJS = RENDER_OBJS
         self.RENDER_OBJS = RENDER_OBJS
         self.RENDER_OBJ = True
+        self.CULL_FACES = True
         self.VAOS = VAOS
         self.TEXTURES = TEXTURES
         self.MTL_INFOS = MTL_INFOS
@@ -426,6 +427,9 @@ class Scene:
             self.CTX.clear(R, G, B)
 
         if self.RENDER_OBJ:
+            if self.CULL_FACES:
+                self.CTX.enable(moderngl.CULL_FACE)
+
             for RENDER_OBJ in self.RENDER_OBJS:
                 if self.PROG["use_texture"].value:
                     self.PROG["amb_rgb"].value = self.MTL_INFOS[RENDER_OBJ]["Ka"]
@@ -443,6 +447,8 @@ class Scene:
 
                 self.VAOS[RENDER_OBJ].render()
                 self.PROG["has_image"].value = False
+
+            self.CTX.disable(moderngl.CULL_FACE)
 
     def set_xy(self, xy):
         self.PROG["x"].value = xy[0]

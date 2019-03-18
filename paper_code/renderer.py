@@ -304,6 +304,7 @@ class Renderer:
 
         # Set up object.
         self.mtl_infos = None
+        self.cull_faces = False
         self.render_objs = []
         self.vbos = None
         self.vaos = None
@@ -429,6 +430,9 @@ class Renderer:
         else:
             self.fbo.clear(R, G, B)
 
+        if self.cull_faces:
+            self.ctx.enable(moderngl.CULL_FACE)
+
         for render_obj in self.render_objs:
             if self.prog["use_texture"].value:
                 self.prog["amb_rgb"].value = self.mtl_infos[render_obj]["Ka"]
@@ -447,6 +451,7 @@ class Renderer:
             self.vaos[render_obj].render()
             self.prog["has_image"].value = False
 
+        self.ctx.disable(moderngl.CULL_FACE)
         self.ctx.copy_framebuffer(self.fbo2, self.fbo)
         image = Image.frombytes(
             "RGB", self.fbo.size, self.fbo2.read(), "raw", "RGB", 0, -1

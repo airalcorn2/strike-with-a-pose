@@ -425,6 +425,9 @@ class SceneWindow(QOpenGLWidget):
 
         key = event.key()
 
+        if key == QtCore.Qt.Key_F:
+            self.scene.CULL_FACES = not self.scene.CULL_FACES
+
         # Quit when ESC is pressed
         if key == QtCore.Qt.Key_Escape:
             QtCore.QCoreApplication.instance().quit()
