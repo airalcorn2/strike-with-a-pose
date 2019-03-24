@@ -8,7 +8,7 @@ This is the companion tool to the paper:
 
 > [Michael A. Alcorn](https://sites.google.com/view/michaelaalcorn), Qi Li, Zhitao Gong, Chengfei Wang, Long Mai, Wei-Shinn Ku, and [Anh Nguyen](http://anhnguyen.me). [Strike (with) a pose: Neural networks are easily fooled by strange poses of familiar objects](https://arxiv.org/abs/1811.11553). Conference on Computer Vision and Pattern Recognition (CVPR). 2019.
 
- The tool allows you to generate adversarial poses of objects with a graphical user interface. Please note that the included jeep object does not meet the realism standards set in the paper. Unfortunately, the school bus object shown in the GIF is proprietary and cannot be distributed with the tool. A browser port of the tool (created by [Zhitao Gong](https://github.com/gongzhitaao)) can be found [here](https://airalcorn2.github.io/strike-with-a-pose/).
+ Code to run experiments like those described in the paper can be found in the [`paper_code`](https://github.com/airalcorn2/strike-with-a-pose/tree/master/paper_code) directory. The tool allows you to generate adversarial poses of objects with a graphical user interface. Please note that the included jeep object does not meet the realism standards set in the paper. Unfortunately, the school bus object shown in the GIF is proprietary and cannot be distributed with the tool. A browser port of the tool (created by [Zhitao Gong](https://github.com/gongzhitaao)) can be found [here](https://airalcorn2.github.io/strike-with-a-pose/).
 
  If you use this tool for your own research, please cite:
 
@@ -20,8 +20,6 @@ This is the companion tool to the paper:
     Year = {2019}
 }
 ```
-
-Code to run experiments like those described in the paper can be found in the [`paper_code`](https://github.com/airalcorn2/strike-with-a-pose/tree/master/paper_code) directory.
 
 ## Table of Contents
 
