@@ -692,6 +692,11 @@ class Window(QWidget):
 
         flo_widget = QWidget()
 
+        # See: https://www.tutorialspoint.com/pyqt/pyqt_qpushbutton_widget.htm.
+        submit = QPushButton("Set Parameters")
+        submit.setFixedWidth(comp_width)
+        submit.clicked.connect(self.scene_window.set_entry_form_values)
+
         flo = QFormLayout()
         entry_fields = {}
         params = [
@@ -710,18 +715,15 @@ class Window(QWidget):
             # See: https://www.tutorialspoint.com/pyqt/pyqt_qlineedit_widget.htm.
             edit = QLineEdit()
             edit.setFixedWidth(200)
+            edit.returnPressed.connect(submit.click)
             entry_fields[name] = edit
             if name in {"yaw", "pitch", "roll"}:
                 name += " (deg.)"
+
             flo.addRow(name, edit)
 
         self.scene_window.entry_fields = entry_fields
         flo.setContentsMargins(0, 0, 0, 0)
-
-        # See: https://www.tutorialspoint.com/pyqt/pyqt_qpushbutton_widget.htm.
-        submit = QPushButton("Set Parameters")
-        submit.setFixedWidth(comp_width)
-        submit.clicked.connect(self.scene_window.set_entry_form_values)
 
         flo_widget.setLayout(flo)
         flo_widget.setFixedWidth(comp_width)
