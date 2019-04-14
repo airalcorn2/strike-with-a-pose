@@ -188,7 +188,6 @@ Use the above commands to kill everything first, then run something like the fol
 ```bash
 export GPUS=8
 export FIRST_XORG_SERVER=7
-export FIRST_VIRTUAL_DISPLAY=8
 
 for ((gpu=0; gpu<${GPUS}; gpu++));
 do
