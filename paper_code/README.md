@@ -172,7 +172,7 @@ DISPLAY=:8 vglrun -d :7.0 python3
 
 ## Kill/Reset Everything
 
-Sometimes things get busted/weird and need to be reset. Kill all of the headless display stuff by running the following and go back to step 10.
+Sometimes, things get busted/weird and need to be reset. When that happens, kill all of the headless display stuff by running the following, and then go back to step 10.
 
 ```bash
 pkill -9 Xorg
@@ -183,7 +183,7 @@ sudo rm /tmp/.X11-unix/X*
 
 ## Start Several X.Org Servers on Different GPUs
 
-Use the above commands to kill everything first, then run something like the following:
+First, kill everything using above commands, and then run something like the following:
 
 ```bash
 export GPUS=8
@@ -210,6 +210,8 @@ done
 ```
 
 ## Run Several Experiments on Different GPUs in Parallel
+
+After starting several X.Org servers on different GPUs using the above commands, you can run something like the following:
 
 ```bash
 for ((gpu=0; gpu<${GPUS}; gpu++));
