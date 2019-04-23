@@ -57,16 +57,16 @@ class ImageClassifier(nn.Module):
     def init_scene_comps(self):
         pass
 
-    def forward(self, input_image):
+    def forward(self, image):
+        image_tensor = torch.Tensor(np.array(image) / 255.0)
+        input_image = image_tensor.permute(2, 0, 1)
         image_normalized = self.preprocess(input_image)
-        out = self.net(image_normalized[None, :, :, :])
+        out = self.net(image_normalized[None, :, :, :].to(self.device))
         return out
 
     def predict(self, image):
         with torch.no_grad():
-            image_tensor = torch.Tensor(np.array(image) / 255.0).to(self.device)
-            input_image = image_tensor.permute(2, 0, 1)
-            out = self.forward(input_image)
+            out = self.forward(image)
             probs = torch.nn.functional.softmax(out, dim=1)
             probs_np = probs[0].detach().cpu().numpy()
             top_label = self.label_map[probs_np.argmax()]

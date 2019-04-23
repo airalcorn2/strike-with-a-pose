@@ -39,13 +39,11 @@ class Model(nn.Module):
         image = input_image.resize((new_width, new_height), Image.ANTIALIAS)
         image = ImageOps.fit(image, (width, height), Image.ANTIALIAS)
 
-        image_tensor = torch.Tensor(np.array(image) / 255.0).to(self.device)
-        input_image = image_tensor.permute(2, 0, 1)
-
-        image_normalized = self.preprocess(input_image)
-
         # Generate predictions.
-        out = self.net(image_normalized[None, :, :, :])
+        image_tensor = torch.Tensor(np.array(image) / 255.0)
+        input_image = image_tensor.permute(2, 0, 1)
+        image_normalized = self.preprocess(input_image)
+        out = self.net(image_normalized[None, :, :, :].to(self.device))
         return out
 
 
