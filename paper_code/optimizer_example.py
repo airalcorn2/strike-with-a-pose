@@ -1,4 +1,6 @@
+import cma
 import imageio
+import logging
 
 from PIL import ImageDraw
 from optimizer_settings import *
@@ -168,7 +170,7 @@ def evaluate_params(params):
     return (image, target_prob, max_prob, max_index)
 
 
-def run_finite_diff(params, gif_f, iterations=100):
+def run_finite_diff(params, gif_f=None, iterations=100):
     """Run finite-difference optimization.
 
     :param initial_params:
@@ -176,7 +178,8 @@ def run_finite_diff(params, gif_f, iterations=100):
     :param iterations:
     :return:
     """
-    writer = imageio.get_writer(gif_f, mode="I")
+    if gif_f is not None:
+        writer = imageio.get_writer(gif_f, mode="I")
 
     start_prob = 0
     best_iter = 0
@@ -185,7 +188,7 @@ def run_finite_diff(params, gif_f, iterations=100):
     first_hit = -1
 
     for current_iter in range(iterations):
-        print(current_iter)
+        logging.info(current_iter)
 
         (image, target_prob, max_prob, max_index) = evaluate_params(params)
         if current_iter == 0:
@@ -196,23 +199,24 @@ def run_finite_diff(params, gif_f, iterations=100):
             best_prob = target_prob
             best_params = params.copy()
 
-        print(target_prob)
-        print(start_prob)
-        print(best_prob)
+        logging.info(target_prob)
+        logging.info(start_prob)
+        logging.info(best_prob)
 
         if first_hit == -1 and max_index == TARGET_CLASS:
             first_hit = current_iter
 
-        draw = ImageDraw.Draw(image)
-        max_label = LABEL_MAP[max_index]
-        (w, h) = draw.getfont().getsize(max_label)
-        draw.rectangle((0, 0, image.size[0], h), fill="white")
-        draw.text(
-            (0, 0),
-            "{0:.2f}/{1:.2f} - {2}".format(target_prob, max_prob, max_label),
-            (0, 0, 0),
-        )
-        writer.append_data(np.array(image))
+        if gif_f is not None:
+            draw = ImageDraw.Draw(image)
+            max_label = LABEL_MAP[max_index]
+            (w, h) = draw.getfont().getsize(max_label)
+            draw.rectangle((0, 0, image.size[0], h), fill="white")
+            draw.text(
+                (0, 0),
+                "{0:.2f}/{1:.2f} - {2}".format(target_prob, max_prob, max_label),
+                (0, 0, 0),
+            )
+            writer.append_data(np.array(image))
 
         # Calculate approximate partial derivatives.
         grads = {
@@ -252,7 +256,8 @@ def run_finite_diff(params, gif_f, iterations=100):
                 params[rot_param + "_y"] = angle_y / norm
                 params[rot_param] = np.arctan2(angle_y, angle_x)
 
-    writer.close()
+    if gif_f is not None:
+        writer.close()
 
     return (best_prob, best_iter, best_params, first_hit)
 
@@ -269,7 +274,7 @@ def run_z_random_search(params, min_z, max_z, iterations=100):
     first_hit = -1
 
     for current_iter in range(iterations):
-        print(current_iter)
+        logging.info(current_iter)
 
         (image, target_prob, max_prob, max_index) = evaluate_params(params)
         if current_iter == 0:
@@ -280,15 +285,118 @@ def run_z_random_search(params, min_z, max_z, iterations=100):
             best_prob = target_prob
             best_params = params.copy()
 
-        print(target_prob)
-        print(start_prob)
-        print(best_prob)
+        logging.info(target_prob)
+        logging.info(start_prob)
+        logging.info(best_prob)
 
         if first_hit == -1 and max_index == TARGET_CLASS:
             first_hit = current_iter
 
         z = np.random.uniform(min_z, max_z)
         params = generate_params({"z": z})
+
+    return (best_prob, best_iter, best_params, first_hit)
+
+
+def dict2array(param_dict):
+    """Convert a dictionary of parameters to an array of parameters.
+
+    :param param_dict:
+    :return:
+    """
+    param_array = []
+    for param in [
+        "x",
+        "y",
+        "z",
+        "yaw_obj_x",
+        "yaw_obj_y",
+        "pitch_obj_x",
+        "pitch_obj_y",
+        "roll_obj_x",
+        "roll_obj_y",
+    ]:
+        param_array.append(param_dict[param])
+
+    return np.array(param_array)
+
+
+def array2dict(param_array):
+    """Convert an array of parameters to a dictionary of parameters.
+
+    :param param_array:
+    :return:
+    """
+    param_dict = {
+        "x": param_array[0],
+        "y": param_array[1],
+        "z": param_array[2],
+        "yaw_obj_x": param_array[3],
+        "yaw_obj_y": param_array[4],
+        "pitch_obj_x": param_array[5],
+        "pitch_obj_y": param_array[6],
+        "roll_obj_x": param_array[7],
+        "roll_obj_y": param_array[8],
+    }
+    return param_dict
+
+
+def run_cma_es(params, iterations=100):
+    """Run CMA-ES optimization.
+
+    :param params:
+    :param iterations:
+    :return:
+    """
+    start_prob = 0
+    best_iter = 0
+    best_prob = 0
+    best_params = None
+    first_hit = -1
+    param_array = dict2array(params)
+    es = cma.CMAEvolutionStrategy(param_array, 1.0, {"popsize": 18})
+    for current_iter in range(iterations):
+        logging.info(current_iter)
+        population = es.ask()
+        pop_params = [array2dict(individual) for individual in population]
+        pop_fitnesses = []
+        pop_probs = []
+        pop_labels = []
+        for params in pop_params:
+            set_all_params(params)
+            image = RENDERER.render()
+            with torch.no_grad():
+                out = MODEL(image)
+
+            loss = CRITERION(out, LABELS).item()
+            pop_fitnesses.append(loss)
+
+            probs = torch.nn.functional.softmax(out, dim=1)
+            probs_np = probs[0].detach().cpu().numpy()
+            target_prob = probs_np[TARGET_CLASS]
+            pop_probs.append(target_prob)
+            max_index = probs_np.argmax()
+            pop_labels.append(max_index)
+
+        es.tell(population, pop_fitnesses)
+
+        max_individual = np.argmax(pop_probs)
+        target_prob = pop_probs[max_individual]
+        if current_iter == 0:
+            start_prob = target_prob
+
+        if target_prob > best_prob:
+            best_iter = current_iter
+            best_prob = target_prob
+            best_params = pop_params[max_individual]
+
+        logging.info(target_prob)
+        logging.info(start_prob)
+        logging.info(best_prob)
+
+        max_index = pop_labels[max_individual]
+        if first_hit == -1 and max_index == TARGET_CLASS:
+            first_hit = current_iter
 
     return (best_prob, best_iter, best_params, first_hit)
 
@@ -323,3 +431,6 @@ if __name__ == "__main__":
         (best_prob, best_iter, best_params, first_hit) = run_z_random_search(
             start_params, MIN_Z, MAX_Z
         )
+    elif OPTIM == "cma_es":
+        (start_params, start_loss, best_zs) = get_start_params()
+        (best_prob, best_iter, best_params, first_hit) = run_cma_es(start_params)
