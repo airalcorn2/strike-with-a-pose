@@ -37,7 +37,7 @@ If you use this code for your own research, please cite:
 ## Install Requirements
 
 ```bash
-pip3 install requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ## Renderer Example

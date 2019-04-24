@@ -1,8 +1,9 @@
 cma==2.6.0
 moderngl==5.4.2
-objloader==0.2.0
 numpy==1.15.4
-torch==0.4.1
-pyrr==0.9.2
-torchvision==0.2.1
+objloader==0.2.0
 Pillow==5.4.1
+pyrr==0.9.2
+scipy==1.2.1
+torch==0.4.1
+torchvision==0.2.1
