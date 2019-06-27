@@ -76,6 +76,31 @@ def gen_rotation_matrix(yaw=0.0, pitch=0.0, roll=0.0):
     return np.dot(R_yaw, np.dot(R_pitch, R_roll))
 
 
+def gen_rotation_matrix_from_azim_elev(azimuth=0.0, elevation=0.0):
+    """Generate a rotation matrix from azimuth and elevation angles (in radians).
+
+    :param azimuth:
+    :param elevation:
+    :return:
+    """
+    y = np.sin(elevation)
+    radius = np.cos(elevation)
+    x = radius * np.sin(azimuth)
+    z = radius * np.cos(azimuth)
+
+    EYE = np.array([x, y, z])
+    TARGET = np.zeros(3)
+    UP = np.array([0.0, 1.0, 0.0])
+
+    diff = EYE - TARGET
+    zaxis = diff / np.linalg.norm(diff)
+    crossed = np.cross(UP, zaxis)
+    xaxis = crossed / np.linalg.norm(crossed)
+    yaxis = np.cross(zaxis, xaxis)
+
+    return np.stack([xaxis, yaxis, zaxis])
+
+
 def load_imagenet_label_map():
     """Load ImageNet label dictionary.
 
