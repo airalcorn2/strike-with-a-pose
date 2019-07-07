@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # and: https://stackoverflow.com/questions/34644101/calculate-surface-normals-from-depth-image-using-neighboring-pixels-cross-produc
     # and: https://en.wikipedia.org/wiki/Normal_mapping#How_it_works.
     depth_pad = np.pad(depth_normed, 1, "constant")
-    (dx, dy) = (1 / depth.shape[0], 1 / depth.shape[1])
+    (dx, dy) = (1 / depth.shape[1], 1 / depth.shape[0])
     dz_dx = (depth_pad[1:-1, 2:] - depth_pad[1:-1, :-2]) / (2 * dx)
     dz_dy = (depth_pad[2:, 1:-1] - depth_pad[:-2, 1:-1]) / (2 * dy)
     norms = np.stack([-dz_dx.flatten(), -dz_dy.flatten(), np.ones(dz_dx.size)])
