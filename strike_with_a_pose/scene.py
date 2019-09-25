@@ -65,9 +65,14 @@ def parse_obj_file(input_obj):
                     v_parts = fv.split("/")
                     (v, vt, vn) = (v_parts[0], None, None)
                     if len(v_parts) == 3:
-                        (vt, vn) = v_parts[1:]
+                        (v, vt, vn) = v_parts
+                        vn = int(vn) - 1
                     elif len(v_parts) == 2:
-                        vt = v_parts[1]
+                        (v, vt) = v_parts
+                        vn = None
+                    else:
+                        v = v_parts[0]
+                        (vt, vn) = (None, None)
 
                     # Convert to zero-based indexing.
                     v = int(v) - 1
@@ -457,7 +462,7 @@ class Scene:
 
     def adjust_angle_of_view(self, angle_of_view):
         self.angle_of_view = angle_of_view
-        self.TAN_ANGLE = np.tan(self.angle_of_view / 2 * np.pi / 180.0)
+        self.TAN_ANGLE = np.tan(np.radians(self.angle_of_view / 2))
         perspective = Matrix44.perspective_projection(
             self.angle_of_view, RATIO, 0.1, 1000.0
         )

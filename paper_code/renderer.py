@@ -10,7 +10,7 @@
 import moderngl
 import numpy as np
 
-from PIL import Image
+from PIL import Image, ImageOps
 from pyrr import Matrix44
 
 # Average ImageNet pixel.
@@ -457,6 +457,17 @@ class Renderer:
             "RGB", self.fbo.size, self.fbo2.read(), "raw", "RGB", 0, -1
         )
         return image
+
+    def get_depth_map(self):
+        depth = np.frombuffer(
+            self.fbo2.read(attachment=-1, dtype="f4"), dtype=np.dtype("f4")
+        )
+        depth = 1 - depth.reshape(self.window_size)
+        min_pos = depth[depth > 0].min()
+        depth[depth > 0] = depth[depth > 0] - min_pos
+        depth = np.uint8(255 * depth / depth.max())
+        depth_map = ImageOps.flip(Image.fromarray(depth, "L").convert("RGB"))
+        return depth_map
 
     def get_vertex_screen_coordinates(self):
         world = np.eye(4)
