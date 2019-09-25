@@ -51,13 +51,16 @@ class WindowInfo:
 
 
 class WheelTool:
-    def __init__(self, amb_int, dif_int, too_close, too_far, angle_of_view):
+    def __init__(
+        self, amb_int, dif_int, too_close, too_far, angle_of_view, camera_distance
+    ):
         self.total_z = 0.0
         self.too_close = too_close
         self.too_far = too_far
         self.amb_int = amb_int
         self.dif_int = dif_int
         self.angle_of_view = angle_of_view
+        self.camera_distance = camera_distance
         self.min_angle_of_view = angle_of_view
         self.step_scaling = 10
         self.param2getter = {
@@ -98,8 +101,20 @@ class WheelTool:
         self.dif_int = max(0, self.dif_int)
 
     def change_angle_of_view(self, step):
-        self.angle_of_view += step / self.step_scaling
-        self.angle_of_view = max(self.min_angle_of_view, min(self.angle_of_view, 90))
+        initial_aov = self.angle_of_view
+        initial_tan_angle = np.tan(np.radians(initial_aov / 2))
+        initial_z = self.total_z
+
+        width = 2 * initial_tan_angle * np.abs(self.camera_distance - initial_z)
+
+        new_aov = initial_aov + step
+        new_aov = max(self.min_angle_of_view, min(new_aov, 180))
+        new_camera_distance = width / (2 * np.tan(np.radians(new_aov / 2)))
+        new_z = self.camera_distance - new_camera_distance
+
+        if self.too_far < new_z < self.too_close:
+            self.set_angle_of_view(new_aov)
+            self.set_z(new_z)
 
     def set_z(self, z):
         self.total_z = max(self.too_far, min(self.too_close, z))
@@ -111,7 +126,7 @@ class WheelTool:
         self.dif_int = max(0, dif)
 
     def set_angle_of_view(self, angle):
-        self.angle_of_view = max(self.min_angle_of_view, min(angle, 90))
+        self.angle_of_view = max(self.min_angle_of_view, min(angle, 180))
 
 
 class RotateTool:
@@ -374,15 +389,15 @@ class SceneWindow(QOpenGLWidget):
                 return
 
         dist = np.abs(self.scene.CAMERA_DISTANCE - params["z"])
-        new_tan = np.tan(params["angle_of_view"] * np.pi / 180.0)
+        new_tan = np.tan(np.radians(params["angle_of_view"] / 2))
         max_trans = dist * new_tan
         for trans in ["x", "y"]:
             if not (-max_trans <= params[trans] <= max_trans):
                 trans_info = QMessageBox()
                 trans_info.setText(
-                    "{0} is capped between -{1:.4f} and {1:.4f} for a z of {2:.4f} and a angle_of_view of {3:.4f}.".format(
-                        trans, max_trans, params["z"], params["angle_of_view"]
-                    )
+                    f"{trans} is capped between -{max_trans:.4f} and {max_trans:.4f}"
+                    + f" for a z of {params['z']:.4f} and an"
+                    + f" angle_of_view of {params['angle_of_view']:.4f}."
                 )
                 trans_info.setWindowTitle(trans)
                 trans_info.show()
@@ -529,8 +544,9 @@ class SceneWindow(QOpenGLWidget):
 
         if mode == self.VIEW:
             self.xy_tool.tan_angle = np.tan(
-                self.wheel_tool.angle_of_view * np.pi / 180.0
+                np.radians(self.wheel_tool.angle_of_view / 2)
             )
+            self.scene.set_param("z", self.wheel_tool.get_z())
 
         self.update()
         self.fill_entry_form()
@@ -597,6 +613,7 @@ class SceneWindow(QOpenGLWidget):
             self.scene.TOO_CLOSE,
             self.scene.TOO_FAR,
             self.scene.angle_of_view,
+            self.scene.CAMERA_DISTANCE,
         )
         self.wheel_update_funcs = {
             amb: self.wheel_tool.change_amb,
