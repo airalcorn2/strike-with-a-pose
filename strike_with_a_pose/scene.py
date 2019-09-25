@@ -63,18 +63,19 @@ def parse_obj_file(input_obj):
             for f in triangles:
                 for fv in f:
                     v_parts = fv.split("/")
+                    (v, vt, vn) = (v_parts[0], None, None)
                     if len(v_parts) == 3:
-                        (v, vt, vn) = v_parts
-                        vn = int(vn) - 1
-                    else:
-                        (v, vt) = v_parts
-                        vn = -1
+                        (vt, vn) = v_parts[1:]
+                    elif len(v_parts) == 2:
+                        vt = v_parts[1]
 
                     # Convert to zero-based indexing.
                     v = int(v) - 1
                     vt = int(vt) - 1 if vt else -1
+                    vn = int(vn) - 1 if vn else -1
 
                     data_v = data["v"][v]
+
                     if vn != -1:
                         data_vn = data["vn"][vn]
                     else:
