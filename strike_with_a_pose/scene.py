@@ -65,14 +65,9 @@ def parse_obj_file(input_obj):
                     v_parts = fv.split("/")
                     (v, vt, vn) = (v_parts[0], None, None)
                     if len(v_parts) == 3:
-                        (v, vt, vn) = v_parts
-                        vn = int(vn) - 1
+                        (vt, vn) = v_parts[1:]
                     elif len(v_parts) == 2:
-                        (v, vt) = v_parts
-                        vn = None
-                    else:
-                        v = v_parts[0]
-                        (vt, vn) = (None, None)
+                        vt = v_parts[1]
 
                     # Convert to zero-based indexing.
                     v = int(v) - 1
