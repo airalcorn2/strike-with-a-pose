@@ -1,5 +1,6 @@
 import moderngl
 import numpy as np
+import os
 
 from PIL import Image, ImageOps
 from pyrr import Matrix44
@@ -21,6 +22,81 @@ LOOK_AT = Matrix44.look_at(EYE, TARGET, UP)
 RATIO = float(WIDTH) / float(HEIGHT)
 
 
+def gen_file_with_vertex_normals(input_f):
+    """If the .obj file is missing vertex normals, calculate and add them.
+
+    :param input_f:
+    :return:
+    """
+    vertices = []
+    faces = []
+    v_lines = []
+    f_lines = []
+    with open(input_f) as obj_f:
+        for line in obj_f:
+            line = line.strip()
+            parts = line.split()
+            if parts[0] == "v":
+                vertices.append(np.array(parts[1:4], dtype=np.float))
+                v_lines.append(line)
+            elif parts[0] == "f":
+                # Check if file already contains vertex normals.
+                f_v1_parts = parts[1].split("/")
+                if len(f_v1_parts) == 3:
+                    if f_v1_parts[2]:
+                        return False
+
+                alt_f_parts = ["f"]
+                face = []
+                for part in parts[1:4]:
+                    f_v_parts = part.split("/")
+                    v = f_v_parts[0]
+                    face.append(v)
+                    vt = ""
+                    if len(f_v_parts) >= 2:
+                        vt = f_v_parts[1]
+
+                    alt_f_parts.append(f"{v}/{vt}/{v}")
+
+                faces.append(np.array(face, dtype=np.int) - 1)
+                f_lines.append(" ".join(alt_f_parts))
+            elif parts[0] != "mtllib":
+                f_lines.append(line)
+            else:
+                v_lines.append(line)
+
+    vertices = np.stack(vertices)
+    # See: https://computergraphics.stackexchange.com/questions/1562/how-to-calculate-surface-normals-for-generated-geometry/1576#1576
+    # and: http://www.iquilezles.org/www/articles/normals/normals.htm.
+    vertex_normals = np.zeros(vertices.shape)
+    for face in faces:
+        (ic, ib, ia) = tuple(face)
+
+        e1 = vertices[ia] - vertices[ib]
+        e2 = vertices[ic] - vertices[ib]
+        normal = np.cross(e1, e2)
+
+        vertex_normals[ia] += normal
+        vertex_normals[ib] += normal
+        vertex_normals[ic] += normal
+
+    vertex_normals = vertex_normals / np.linalg.norm(vertex_normals, axis=1)[None].T
+
+    obj_name = input_f.split("/")[-1].split(".")[0]
+    output_f = "/".join(input_f.split("/")[:-1]) + f"{obj_name}_alt.obj"
+    with open(output_f, "w") as alt_obj_f:
+        for v_line in v_lines:
+            print(v_line, file=alt_obj_f)
+
+        for vertex_normal in vertex_normals:
+            print("vn " + " ".join([str(val) for val in vertex_normal]), file=alt_obj_f)
+
+        for f_line in f_lines:
+            print(f_line, file=alt_obj_f)
+
+    return output_f
+
+
 def parse_obj_file(input_obj):
     """Parse Wavefront .obj file.
 
@@ -31,6 +107,10 @@ def parse_obj_file(input_obj):
     """
     data = {"v": [], "vn": [], "vt": []}
     packed_arrays = {}
+    alt_obj_f = gen_file_with_vertex_normals(input_obj)
+    if alt_obj_f:
+        input_obj = alt_obj_f
+
     obj_f = open(input_obj)
     current_mtl = None
     min_vec = np.full(3, np.inf)
@@ -97,6 +177,10 @@ def parse_obj_file(input_obj):
             if current_mtl in packed_arrays:
                 packed_arrays.pop(current_mtl)
 
+    obj_f.close()
+    if alt_obj_f:
+        os.remove(alt_obj_f)
+
     max_pos_vec = max_vec - min_vec
     max_pos_val = max(max_pos_vec)
     max_pos_vec_norm = max_pos_vec / max_pos_val
@@ -154,6 +238,7 @@ def parse_mtl_file(input_mtl):
         elif elem_type == "map_Kd":
             mtl_infos[current_mtl]["map_Kd"] = parts[1]
 
+    mtl_f.close()
     sub_objs.sort()
     sub_objs.reverse()
     non_trans = [sub_obj for sub_obj in sub_objs if mtl_infos[sub_obj]["d"] == 1.0]
