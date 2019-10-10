@@ -458,16 +458,41 @@ class Renderer:
         )
         return image
 
-    def get_depth_map(self):
+    def get_depth_arrays(self):
         depth = np.frombuffer(
             self.fbo2.read(attachment=-1, dtype="f4"), dtype=np.dtype("f4")
         )
         depth = 1 - depth.reshape(self.window_size)
         min_pos = depth[depth > 0].min()
         depth[depth > 0] = depth[depth > 0] - min_pos
-        depth = np.uint8(255 * depth / depth.max())
-        depth_map = ImageOps.flip(Image.fromarray(depth, "L").convert("RGB"))
-        return depth_map
+        depth_normed = depth / depth.max()
+        return (depth, depth_normed)
+
+    def get_depth_map(self):
+        (depth, depth_normed) = self.get_depth_arrays()
+        depth_map = np.uint8(255 * depth_normed)
+        return ImageOps.flip(Image.fromarray(depth_map, "L"))
+
+    def get_normal_map(self):
+        """See: https://stackoverflow.com/questions/5281261/generating-a-normal-map-from-a-height-map
+        and: https://stackoverflow.com/questions/34644101/calculate-surface-normals-from-depth-image-using-neighboring-pixels-cross-produc
+        and: https://en.wikipedia.org/wiki/Normal_mapping#How_it_works.
+
+        :return:
+        """
+        (depth, depth_normed) = self.get_depth_arrays()
+        depth_pad = np.pad(depth_normed, 1, "constant")
+        (dx, dy) = (1 / depth.shape[1], 1 / depth.shape[0])
+        dz_dx = (depth_pad[1:-1, 2:] - depth_pad[1:-1, :-2]) / (2 * dx)
+        dz_dy = (depth_pad[2:, 1:-1] - depth_pad[:-2, 1:-1]) / (2 * dy)
+        norms = np.stack([-dz_dx.flatten(), -dz_dy.flatten(), np.ones(dz_dx.size)])
+        magnitudes = np.linalg.norm(norms, axis=0)
+        norms /= magnitudes
+        norms = norms.T
+        norms[:, :2] = 255 * (norms[:, :2] + 1) / 2
+        norms[:, 2] = 127 * norms[:, 2] + 128
+        norms = np.uint8(norms).reshape((*depth.shape, 3))
+        return ImageOps.flip(Image.fromarray(norms))
 
     def get_vertex_screen_coordinates(self):
         world = np.eye(4)
@@ -493,14 +518,14 @@ class Renderer:
         )
         screen_coords = np.hstack((screen_xs, screen_ys))
 
-        screen_upside_down = np.zeros((window_height, window_width))
+        screen = np.zeros((window_height, window_width))
         for i in range(len(screen_xs)):
             col = x = int(screen_xs[i])
             row = y = int(screen_ys[i])
             if x < window_width and y < window_height:
-                screen_upside_down[row, col] = 1
+                screen[window_height - row - 1, col] = 1
 
-        screen_mat = np.uint8(255 * np.flip(screen_upside_down, axis=0))
+        screen_mat = np.uint8(255 * screen)
         screen_img = Image.fromarray(screen_mat, mode="L")
         return (screen_coords, screen_img)
 
