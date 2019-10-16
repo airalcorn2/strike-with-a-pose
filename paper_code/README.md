@@ -56,7 +56,7 @@ python3 optimizer_example.py
 
 Follow the steps below (modified from my GitHub issue [here](https://github.com/cprogrammer1994/Headless-rendering-with-python/issues/7#)) to enable ModernGL on a headless server with NVIDIA GPUs.
 These steps borrow heavily from the CARLA headless set up guide [here](https://github.com/carla-simulator/carla/blob/master/Docs/carla_headless.md) and the configuration scripts found [here](https://github.com/agisoft-llc/cloud-scripts).
-Note, [as mentioned in the CARLA guide](https://github.com/carla-simulator/carla/blob/master/Docs/carla_headless.md#-extra-), you should either not have a graphical desktop environment installed, or you need to stop it before starting X.Org servers:
+Note, [as mentioned in the CARLA guide](https://github.com/carla-simulator/carla/blob/master/Docs/carla_headless.md#-extra-), you should either not have a graphical desktop environment installed, or you need to stop it before starting X.Org servers, e.g.:
 
 ```bash
 sudo service lightdm stop
