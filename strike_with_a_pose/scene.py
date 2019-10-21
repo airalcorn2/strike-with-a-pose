@@ -35,6 +35,9 @@ def gen_file_with_vertex_normals(input_f):
     with open(input_f) as obj_f:
         for line in obj_f:
             line = line.strip()
+            if line == "":
+                continue
+
             parts = line.split()
             if parts[0] == "v":
                 vertices.append(np.array(parts[1:4], dtype=np.float))
