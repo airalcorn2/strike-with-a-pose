@@ -13,9 +13,12 @@ if __name__ == "__main__":
     )
 
     # Render scene.
+    save = False
     image = renderer.render()
-    image.save("pose_1.png")
-    # image.show()
+    if save:
+        image.save("pose_1.png")
+    else:
+        image.show()
 
     # Get neural network probabilities.
     with torch.no_grad():
@@ -39,8 +42,10 @@ if __name__ == "__main__":
 
     # Render new scene.
     image = renderer.render()
-    image.save("pose_2.png")
-    # image.show()
+    if save:
+        image.save("pose_2.png")
+    else:
+        image.show()
 
     # Get neural network probabilities.
     with torch.no_grad():
@@ -51,23 +56,31 @@ if __name__ == "__main__":
 
     # Get depth map.
     depth_map = renderer.get_depth_map()
-    depth_map.save("depth_map.png")
-    # depth_map.show()
+    if save:
+        depth_map.save("depth_map.png")
+    else:
+        depth_map.show()
 
     # Get normal map.
     norm_map = renderer.get_normal_map()
-    norm_map.save("normal_map.png")
-    # norm_map.show()
+    if save:
+        norm_map.save("normal_map.png")
+    else:
+        norm_map.show()
 
     # Get screen coordinates of vertices.
     (screen_coords, screen_img) = renderer.get_vertex_screen_coordinates()
-    screen_img.save("screen_coords.png")
-    # screen_img.show()
+    if save:
+        screen_img.save("screen_coords.png")
+    else:
+        screen_img.show()
 
     # Use azimuth and elevation to generate rotation matrix.
     R_obj = gen_rotation_matrix_from_azim_elev(np.pi / 4, np.pi / 4)
     renderer.prog["R_obj"].write(R_obj.T.astype("f4").tobytes())
 
     image = renderer.render()
-    image.save("camera.png")
-    # image.show()
+    if save:
+        image.save("camera.png")
+    else:
+        image.show()
