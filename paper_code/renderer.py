@@ -508,12 +508,12 @@ class Renderer:
         (window_width, window_height) = self.window_size
         screen_xs = (
             window_width
-            * (np.array(pre_screen_coords[0]) / np.array(pre_screen_coords[2]) + 1)
+            * (np.array(pre_screen_coords[0]) / np.array(pre_screen_coords[3]) + 1)
             / 2
         )
         screen_ys = (
             window_height
-            * (np.array(pre_screen_coords[1]) / np.array(pre_screen_coords[2]) + 1)
+            * (np.array(pre_screen_coords[1]) / np.array(pre_screen_coords[3]) + 1)
             / 2
         )
         screen_coords = np.hstack((screen_xs, screen_ys))
