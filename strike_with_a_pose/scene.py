@@ -523,7 +523,7 @@ class Scene:
                 if self.PROG["use_texture"].value:
                     self.PROG["amb_rgb"].value = self.MTL_INFOS[RENDER_OBJ]["Ka"]
                     self.PROG["dif_rgb"].value = self.MTL_INFOS[RENDER_OBJ]["Kd"]
-                    if self.use_spec:
+                    if (self.use_spec) and ("Ns" in self.MTL_INFOS[RENDER_OBJ]):
                         self.PROG["spc_rgb"].value = self.MTL_INFOS[RENDER_OBJ]["Ks"]
                         self.PROG["spec_exp"].value = self.MTL_INFOS[RENDER_OBJ]["Ns"]
                     else:
